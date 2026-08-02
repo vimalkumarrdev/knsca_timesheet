@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Timesheets · KNSCA{% endblock %}
+{% block title %}Project Timesheet · KNSCA{% endblock %}
 {% block content %}
 <div class="card">
-    <h1>All Timesheets</h1>
+    <h1>Project Timesheet</h1>
 
     <form method="get" style="margin-bottom:1.25rem; display:flex; gap:0.75rem; align-items:end;">
         <div class="form-group" style="margin-bottom:0;">
@@ -10,16 +10,16 @@
             <input type="month" id="id_month" name="month" value="{{ selected_month }}">
         </div>
         <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
-        <a href="{% url 'timesheets:approvals_export' %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+        <a href="{% url 'timesheets:project_timesheet_export' %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
     </form>
 
     {% if rows %}
-    <input type="search" id="approvals-search" class="table-search" placeholder="Search employees…">
+    <input type="search" id="project-timesheet-search" class="table-search" placeholder="Search projects…">
     <div style="overflow-x:auto;">
     <table class="table timesheet-grid">
         <thead>
             <tr>
-                <th class="sticky-col">Employee</th>
+                <th class="sticky-col">Project</th>
                 {% for label in day_labels %}
                 <th style="text-align:center; white-space:nowrap;">{{ label }}</th>
                 {% endfor %}
@@ -30,14 +30,14 @@
             {% for row in rows %}
             <tr>
                 <td class="sticky-col" style="white-space:nowrap;">
-                    <a href="#" onclick="document.getElementById('modal-{{ row.user.id }}').showModal(); return false;">
-                        {{ row.user.username }}
+                    <a href="#" onclick="document.getElementById('modal-project-{{ row.project.id }}').showModal(); return false;">
+                        {{ row.project.name }}
                     </a>
                 </td>
                 {% for cell in row.day_cells %}
                 <td style="text-align:center;">
                     {% if cell.group %}
-                    <a href="#" onclick="document.getElementById('modal-day-{{ row.user.id }}-{{ cell.day }}').showModal(); return false;">{{ cell.group.total_hours }}</a>
+                    <a href="#" onclick="document.getElementById('modal-project-day-{{ row.project.id }}-{{ cell.day }}').showModal(); return false;">{{ cell.group.total_hours }}</a>
                     {% endif %}
                 </td>
                 {% endfor %}
@@ -48,78 +48,66 @@
     </table>
     </div>
     {% else %}
-    <p class="helptext">No users found.</p>
+    <p class="helptext">No projects yet.</p>
     {% endif %}
 </div>
 
 {% for row in rows %}
-<dialog id="modal-{{ row.user.id }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:520px; width:90%; position:relative;">
+<dialog id="modal-project-{{ row.project.id }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:520px; width:90%; position:relative;">
     <form method="dialog">
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
-    <h2 style="margin-top:0;">{{ row.user.username }} · {{ month_label }}</h2>
+    <h2 style="margin-top:0;">{{ row.project.name }} · {{ month_label }}</h2>
 
-    {% if row.date_groups %}
-    <input type="search" id="modal-search-{{ row.user.id }}" class="table-search" placeholder="Search entries…">
-    {% for group in row.date_groups %}
-    <h3 style="margin-top:1rem; display:flex; justify-content:space-between; align-items:baseline;">
-        <span>{{ group.date }}</span>
-        <span class="helptext" style="font-size:0.85rem;">Total: {{ group.total_hours }}h</span>
-    </h3>
-    <table class="table" style="margin-bottom:0.5rem;">
+    {% if row.entries %}
+    <input type="search" id="modal-project-search-{{ row.project.id }}" class="table-search" placeholder="Search entries…">
+    <table class="table">
         <thead>
             <tr>
-                <th>Project</th>
+                <th>Employee</th>
+                <th>Date</th>
                 <th>Hours</th>
-                <th>Work mode</th>
-                <th>Remarks</th>
             </tr>
         </thead>
         <tbody>
-            {% for entry in group.entries %}
+            {% for entry in row.entries %}
             <tr>
-                <td>{{ entry.project.name }}</td>
+                <td>{{ entry.user.username }}</td>
+                <td>{{ entry.date }}</td>
                 <td>{{ entry.hours }}</td>
-                <td>{{ entry.get_work_mode_display }}</td>
-                <td>{{ entry.remarks|default:"—" }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    {% endfor %}
     {% else %}
-    <p class="helptext">No entries for this month.</p>
+    <p class="helptext">No entries logged for this month.</p>
     {% endif %}
 
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>
 </dialog>
-<script>wireTableSearch('modal-search-{{ row.user.id }}', '#modal-{{ row.user.id }}');</script>
+<script>wireTableSearch('modal-project-search-{{ row.project.id }}', '#modal-project-{{ row.project.id }}');</script>
 
 {% for cell in row.day_cells %}
 {% if cell.group %}
-<dialog id="modal-day-{{ row.user.id }}-{{ cell.day }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:420px; width:90%; position:relative;">
+<dialog id="modal-project-day-{{ row.project.id }}-{{ cell.day }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:420px; width:90%; position:relative;">
     <form method="dialog">
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
-    <h2 style="margin-top:0;">{{ row.user.username }} · {{ cell.group.date }}</h2>
+    <h2 style="margin-top:0;">{{ row.project.name }} · {{ cell.group.date }}</h2>
     <table class="table">
         <thead>
             <tr>
-                <th>Project</th>
+                <th>Employee</th>
                 <th>Hours</th>
-                <th>Work mode</th>
-                <th>Remarks</th>
             </tr>
         </thead>
         <tbody>
             {% for entry in cell.group.entries %}
             <tr>
-                <td>{{ entry.project.name }}</td>
+                <td>{{ entry.user.username }}</td>
                 <td>{{ entry.hours }}</td>
-                <td>{{ entry.get_work_mode_display }}</td>
-                <td>{{ entry.remarks|default:"—" }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -132,5 +120,5 @@
 {% endif %}
 {% endfor %}
 {% endfor %}
-<script>wireTableSearch('approvals-search', '.card');</script>
+<script>wireTableSearch('project-timesheet-search', '.card');</script>
 {% endblock %}

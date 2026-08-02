@@ -12,6 +12,8 @@
         <tr>
             <th>Project</th>
             <th>Hours</th>
+            <th>Work mode</th>
+            <th>Remarks</th>
             <th></th>
         </tr>
     </thead>
@@ -20,6 +22,8 @@
         <tr>
             <td>{{ entry.project.name }}</td>
             <td>{{ entry.hours }}</td>
+            <td>{{ entry.get_work_mode_display }}</td>
+            <td>{{ entry.remarks|default:"—" }}</td>
             <td><a href="{% url 'timesheets:edit_entry' entry.pk %}">Edit</a></td>
         </tr>
         {% endfor %}

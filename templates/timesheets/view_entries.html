@@ -3,6 +3,18 @@
 {% block content %}
 <div class="card" id="entries-card">
     <h1>All entries</h1>
+
+    <form method="get" style="margin-bottom:1.25rem; display:flex; gap:0.75rem; align-items:end;">
+        <div class="form-group" style="margin-bottom:0;">
+            <label for="id_month">Month</label>
+            <input type="month" id="id_month" name="month" value="{{ selected_month }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
+        {% if selected_month %}
+        <a href="{% url 'timesheets:view_entries' %}" class="btn" style="width:auto; background:transparent; color:var(--color-text-muted);">Show all</a>
+        {% endif %}
+    </form>
+
     {% if month_groups %}
     <input type="search" id="entries-search" class="table-search" placeholder="Search entries…">
     {% for month in month_groups %}
@@ -34,7 +46,7 @@
     {% endfor %}
     {% endfor %}
     {% else %}
-    <p class="helptext">No entries yet.</p>
+    <p class="helptext">{% if selected_month %}No entries for this month.{% else %}No entries yet.{% endif %}</p>
     {% endif %}
 </div>
 <script>wireTableSearch('entries-search', '#entries-card');</script>

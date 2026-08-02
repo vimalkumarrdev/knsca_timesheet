@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Enable Month · KNSCA{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px; margin-bottom:1.5rem;">
+    <h1>Enable a past month</h1>
+    <p class="helptext">Employees can only log time for the current month by default. Enabling a month here lets everyone log or edit entries for it too.</p>
+
+    <form method="post" style="display:flex; gap:0.75rem; align-items:end; margin-top:1rem;">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom:0;">
+            <label for="id_month">Month</label>
+            <input type="month" id="id_month" name="month" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:auto;">Enable</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Currently enabled months</h2>
+    {% if open_months %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Enabled by</th>
+                <th>Enabled at</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in open_months %}
+            <tr>
+                <td>{{ item.label }}</td>
+                <td>{{ item.obj.enabled_by.username|default:"—" }}</td>
+                <td>{{ item.obj.enabled_at }}</td>
+                <td>
+                    <form method="post" action="{% url 'timesheets:open_months_delete' item.obj.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="width:auto; background:transparent; color:var(--color-danger); padding:0;">Revoke</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No past months enabled — only the current month is open for logging.</p>
+    {% endif %}
+</div>
+{% endblock %}

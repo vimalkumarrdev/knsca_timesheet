@@ -196,6 +196,24 @@ h1, h2, h3 {
     color: var(--color-text);
 }
 
+.form-group input[type="radio"],
+.form-group input[type="checkbox"] {
+    width: auto;
+}
+
+#id_work_mode {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+#id_work_mode label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 400;
+}
+
 .table-search {
     width: 100%;
     max-width: 280px;
@@ -274,6 +292,23 @@ h1, h2, h3 {
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+.sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-surface);
+    box-shadow: 1px 0 0 var(--color-border);
+}
+
+.timesheet-grid {
+    border: 1px solid var(--color-border);
+}
+
+.timesheet-grid th,
+.timesheet-grid td {
+    border: 1px solid var(--color-border);
 }
 
 .page-header {

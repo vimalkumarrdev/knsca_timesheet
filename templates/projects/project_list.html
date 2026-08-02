@@ -6,7 +6,9 @@
         <h1>Projects</h1>
         <div style="display:flex; gap:0.75rem;">
             <a href="{% url 'projects:export' %}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+            {% if user.role == "ADMIN" %}
             <a href="{% url 'projects:add' %}" class="btn btn-primary" style="width:auto;">Add project</a>
+            {% endif %}
         </div>
     </div>
 
@@ -18,7 +20,7 @@
                 <th>Name</th>
                 <th>Last updated by</th>
                 <th>Last updated at</th>
-                <th></th>
+                {% if user.role == "ADMIN" %}<th></th>{% endif %}
             </tr>
         </thead>
         <tbody>
@@ -27,7 +29,9 @@
                 <td>{{ project.name }}</td>
                 <td>{{ project.last_updated_by|default:"—" }}</td>
                 <td>{{ project.updated_at }}</td>
+                {% if user.role == "ADMIN" %}
                 <td><a href="{% url 'projects:edit' project.pk %}">Edit</a></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

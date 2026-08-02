@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, ListView, UpdateView
 
-from accounts.mixins import ManagerRequiredMixin
+from accounts.mixins import AdminRequiredMixin, ManagerRequiredMixin
 from config.excel import export_xlsx
 
 from .forms import ProjectForm
@@ -34,7 +34,7 @@ class ProjectExportView(ManagerRequiredMixin, View):
         )
 
 
-class ProjectCreateView(ManagerRequiredMixin, CreateView):
+class ProjectCreateView(AdminRequiredMixin, CreateView):
     model = Project
     form_class = ProjectForm
     template_name = "projects/project_form.html"
@@ -46,7 +46,7 @@ class ProjectCreateView(ManagerRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ProjectUpdateView(ManagerRequiredMixin, UpdateView):
+class ProjectUpdateView(AdminRequiredMixin, UpdateView):
     model = Project
     form_class = ProjectForm
     template_name = "projects/project_form.html"
