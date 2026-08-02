@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Timesheets · KNSCA{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>All Timesheets</h1>
+
+    <form method="get" style="margin-bottom:1.25rem; display:flex; gap:0.75rem; align-items:end;">
+        <div class="form-group" style="margin-bottom:0;">
+            <label for="id_month">Month</label>
+            <input type="month" id="id_month" name="month" value="{{ selected_month }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
+        <a href="{% url 'timesheets:approvals_export' %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+    </form>
+
+    {% if rows %}
+    <input type="search" id="approvals-search" class="table-search" placeholder="Search employees…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Total hours ({{ month_label }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>
+                    <a href="#" onclick="document.getElementById('modal-{{ row.user.id }}').showModal(); return false;">
+                        {{ row.user.username }}
+                    </a>
+                </td>
+                <td>{{ row.total_hours }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No users found.</p>
+    {% endif %}
+</div>
+
+{% for row in rows %}
+<dialog id="modal-{{ row.user.id }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:520px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">{{ row.user.username }} · {{ month_label }}</h2>
+
+    {% if row.date_groups %}
+    <input type="search" id="modal-search-{{ row.user.id }}" class="table-search" placeholder="Search entries…">
+    {% for group in row.date_groups %}
+    <h3 style="margin-top:1rem; display:flex; justify-content:space-between; align-items:baseline;">
+        <span>{{ group.date }}</span>
+        <span class="helptext" style="font-size:0.85rem;">Total: {{ group.total_hours }}h</span>
+    </h3>
+    <table class="table" style="margin-bottom:0.5rem;">
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Hours</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in group.entries %}
+            <tr>
+                <td>{{ entry.project.name }}</td>
+                <td>{{ entry.hours }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% else %}
+    <p class="helptext">No entries for this month.</p>
+    {% endif %}
+
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+<script>wireTableSearch('modal-search-{{ row.user.id }}', '#modal-{{ row.user.id }}');</script>
+{% endfor %}
+<script>wireTableSearch('approvals-search', '.card');</script>
+{% endblock %}

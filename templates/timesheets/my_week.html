@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}My Timesheet · KNSCA{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px; margin-bottom:1.5rem;">
+    <h1>Log time</h1>
+
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.date.id_for_label }}">Date</label>
+            {{ form.date }}
+            {% if form.date.errors %}
+                <ul class="errorlist">{% for error in form.date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.project.id_for_label }}">Project</label>
+            {{ form.project }}
+            {% if form.project.errors %}
+                <ul class="errorlist">{% for error in form.project.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.hours.id_for_label }}">Hours</label>
+            {{ form.hours }}
+            {% if form.hours.errors %}
+                <ul class="errorlist">{% for error in form.hours.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+<div class="card" id="entries-card">
+    <h1>{{ month_label }} entries</h1>
+    {% if date_groups %}
+    <input type="search" id="entries-search" class="table-search" placeholder="Search entries…">
+    {% endif %}
+    {% include "timesheets/_entries_list.html" %}
+</div>
+<script>wireTableSearch('entries-search', '#entries-card');</script>
+{% endblock %}

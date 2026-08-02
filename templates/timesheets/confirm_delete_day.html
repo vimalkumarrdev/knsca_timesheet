@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Delete entries · KNSCA{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <h1>Delete entries for {{ date }}?</h1>
+    <p class="helptext">This will permanently delete all {{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }} logged on this date.</p>
+
+    <table class="table" style="margin-bottom:1.25rem;">
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Hours</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.project.name }}</td>
+                <td>{{ entry.hours }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn" style="background:var(--color-danger); color:#fff;">Yes, delete all entries for this date</button>
+        <a href="{% url 'timesheets:my_week' %}" class="btn" style="background:transparent; color:var(--color-text-muted);">Cancel</a>
+    </form>
+</div>
+{% endblock %}

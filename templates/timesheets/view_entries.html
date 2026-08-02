@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}View Entries · KNSCA{% endblock %}
+{% block content %}
+<div class="card" id="entries-card">
+    <h1>All entries</h1>
+    {% if month_groups %}
+    <input type="search" id="entries-search" class="table-search" placeholder="Search entries…">
+    {% for month in month_groups %}
+    <h2 style="margin-top:1.5rem; display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--color-border); padding-bottom:0.5rem;">
+        <span>{{ month.label }}</span>
+        <span class="helptext" style="font-size:0.9rem;">Total: {{ month.total_hours }}h</span>
+    </h2>
+    {% for group in month.date_groups %}
+    <h3 style="margin-top:1rem; display:flex; justify-content:space-between; align-items:baseline;">
+        <span>{{ group.date }}</span>
+        <span class="helptext" style="font-size:0.85rem;">Total: {{ group.total_hours }}h</span>
+    </h3>
+    <table class="table" style="margin-bottom:0.5rem;">
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Hours</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in group.entries %}
+            <tr>
+                <td>{{ entry.project.name }}</td>
+                <td>{{ entry.hours }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% endfor %}
+    {% else %}
+    <p class="helptext">No entries yet.</p>
+    {% endif %}
+</div>
+<script>wireTableSearch('entries-search', '#entries-card');</script>
+{% endblock %}

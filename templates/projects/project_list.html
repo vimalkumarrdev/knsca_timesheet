@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Projects · KNSCA{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1>Projects</h1>
+        <div style="display:flex; gap:0.75rem;">
+            <a href="{% url 'projects:export' %}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+            <a href="{% url 'projects:add' %}" class="btn btn-primary" style="width:auto;">Add project</a>
+        </div>
+    </div>
+
+    {% if projects %}
+    <input type="search" id="project-search" class="table-search" placeholder="Search projects…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Last updated by</th>
+                <th>Last updated at</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr>
+                <td>{{ project.name }}</td>
+                <td>{{ project.last_updated_by|default:"—" }}</td>
+                <td>{{ project.updated_at }}</td>
+                <td><a href="{% url 'projects:edit' project.pk %}">Edit</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No projects yet.</p>
+    {% endif %}
+</div>
+<script>wireTableSearch('project-search', '.card');</script>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% if date_groups %}
+{% for group in date_groups %}
+<h3 style="margin-top:1.25rem; display:flex; justify-content:space-between; align-items:baseline;">
+    <span>{{ group.date }}</span>
+    <span>
+        <span class="helptext" style="font-size:0.85rem;">Total: {{ group.total_hours }}h</span>
+        <a href="{% url 'timesheets:delete_day' group.date|date:'Y-m-d' %}" style="color:var(--color-danger); font-size:0.85rem; margin-left:0.75rem;">Delete day</a>
+    </span>
+</h3>
+<table class="table" style="margin-bottom:0.5rem;">
+    <thead>
+        <tr>
+            <th>Project</th>
+            <th>Hours</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in group.entries %}
+        <tr>
+            <td>{{ entry.project.name }}</td>
+            <td>{{ entry.hours }}</td>
+            <td><a href="{% url 'timesheets:edit_entry' entry.pk %}">Edit</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+{% else %}
+<p class="helptext">No entries yet.</p>
+{% endif %}
