@@ -4,34 +4,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}KNSCA Timesheet{% endblock %}</title>
+    <title>{% block title %}KNSCA Timesheet & Claim Portal{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <script src="{% static 'js/table-search.js' %}"></script>
 </head>
 <body>
     {% if user.is_authenticated %}
     <header class="navbar">
-        <span class="brand">KNSCA Timesheet</span>
+        <span class="brand">KNSCA Timesheet & Claim Portal</span>
         <div style="display:flex; align-items:center;">
             <nav>
-                {% if user.role == "ADMIN" %}
-                    <a href="{% url 'accounts:redirect_by_role' %}">📊 Dashboard</a>
-                    <a href="{% url 'timesheets:open_months' %}">🔓 Enable Month</a>
-                {% elif user.role == "MANAGER" %}
-                    <a href="{% url 'dashboard:home' %}">📊 Dashboard</a>
-                    <a href="{% url 'timesheets:approvals' %}">🗓️ View Timesheet</a>
-                {% else %}
-                    <a href="{% url 'accounts:redirect_by_role' %}">⏱️ Employee Timesheet</a>
-                {% endif %}
+                <a href="{% url 'accounts:redirect_by_role' %}">📊 Dashboard</a>
+
                 {% if user.role == "MANAGER" or user.role == "ADMIN" %}
-                    <a href="{% url 'projects:list' %}">📁 Projects</a>
-                    <a style ="padding-right: 20px;" href="{% url 'timesheets:project_timesheet' %}" class="nav-gap-after">🗂️ Project Timesheet</a>
-                {% endif %}
-                {% if user.role == "EMPLOYEE" %}
-                    <a style="padding-right: 20px;" href="{% url 'timesheets:view_entries' %}">📄 View entries</a>
+                <div class="dropdown">
+                    <a href="{% url 'claims:review' %}" class="dropbtn">🧾 Claims ▾</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'claims:review' %}">Overall claims</a>
+                        <a href="{% url 'claims:project_wise' %}">Project wise claims</a>
+                        <a href="{% url 'claims:settlement' %}">Claim settlement</a>
+                        {% if user.role == "ADMIN" %}
+                        <a href="{% url 'claims:claim_type_list' %}">Manage Claim</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="dropdown">
+                    <a href="{% url 'timesheets:approvals' %}" class="dropbtn">🗓️ Time sheet ▾</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'timesheets:approvals' %}">Employee timesheet</a>
+                        <a href="{% url 'timesheets:project_timesheet' %}">Project timesheet</a>
+                        <a href="{% url 'leaves:manage' %}">Manage Leaves</a>
+                        <a href="{% url 'holidays:manage' %}">Manage Holidays</a>
+                        {% if user.role == "ADMIN" %}
+                        <a href="{% url 'timesheets:open_months' %}">Enable Month</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a href="{% url 'projects:list' %}">📁 Projects</a>
+                {% else %}
+                <div class="dropdown">
+                    <a href="{% url 'timesheets:my_week' %}" class="dropbtn">🗓️ Time sheet ▾</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'timesheets:my_week' %}">My Timesheet</a>
+                        <a href="{% url 'timesheets:view_entries' %}">View entries</a>
+                    </div>
+                </div>
+                <a href="{% url 'claims:my_claims' %}">🧾 Claims</a>
                 {% endif %}
             </nav>
-            <span class="user-badge">Username: {{ user.username }} &nbsp; Role: {{ user.get_role_display }}</span>
+
+            <div class="dropdown">
+                <span class="dropbtn">👤</span>
+                <div class="dropdown-content dropdown-right">
+                    <div style="padding:0.55rem 1.1rem; font-size:0.85rem; color:var(--color-text-muted); border-bottom:1px solid var(--color-border); margin-bottom:0.3rem;">
+                        {{ user.username }} &middot; {{ user.get_role_display }}
+                    </div>
+                    <a href="{% url 'accounts:profile' %}">View Profile</a>
+                </div>
+            </div>
             <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted); padding:0.3rem 0.6rem;">Log out</button>
@@ -40,10 +72,12 @@
     </header>
     {% endif %}
 
-    <main class="page">
+    <main class="page{% block page_extra_class %}{% endblock %}" style="{% block page_style %}{% endblock %}">
         {% if messages %}
             {% for message in messages %}
+                {% if "claim_popup" not in message.tags %}
                 <div class="card" style="margin-bottom:1rem;">{{ message }}</div>
+                {% endif %}
             {% endfor %}
         {% endif %}
         {% block content %}{% endblock %}

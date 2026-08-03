@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Claim Types · KNSCA{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1>Claim Types</h1>
+        <a href="{% url 'claims:claim_type_add' %}" class="btn btn-primary" style="width:auto;">Add claim type</a>
+    </div>
+
+    {% if claim_types %}
+    <input type="search" id="claim-type-search" class="table-search" placeholder="Search claim types…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Bill required</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim_type in claim_types %}
+            <tr>
+                <td>{{ claim_type.name }}</td>
+                <td>{% if claim_type.is_active %}Enabled{% else %}Disabled{% endif %}</td>
+                <td>{% if claim_type.bill_required %}Yes{% else %}No{% endif %}</td>
+                <td style="white-space:nowrap;">
+                    <a href="{% url 'claims:claim_type_edit' claim_type.pk %}">Edit</a>
+                    <form method="post" action="{% url 'claims:claim_type_toggle' claim_type.pk %}" style="display:inline; margin-left:0.75rem;">
+                        {% csrf_token %}
+                        {% if claim_type.is_active %}
+                        <button type="submit" class="btn" style="width:auto; background:transparent; color:var(--color-danger); padding:0;">Disable</button>
+                        {% else %}
+                        <button type="submit" class="btn" style="width:auto; background:transparent; color:var(--color-primary); padding:0;">Enable</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No claim types yet.</p>
+    {% endif %}
+</div>
+<script>wireTableSearch('claim-type-search', '.card');</script>
+{% endblock %}

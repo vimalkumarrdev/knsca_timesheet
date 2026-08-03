@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Claims Review · KNSCA{% endblock %}
+{% block page_style %}max-width: none; width: 100%;{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:1.5rem;">
+    <div class="page-header">
+        <h1>Claims &middot; {{ month_label }}</h1>
+        
+    </div>
+    <form method="get" style="display:flex; gap:0.75rem; align-items:end;">
+        <div class="form-group" style="margin-bottom:0;">
+            <label for="id_month">Month</label>
+            <input type="month" id="id_month" name="month" value="{{ selected_month }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
+    </form>
+</div>
+
+
+
+{% for row in employee_rows %}
+<dialog id="employee-claims-modal-{{ row.user.id }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:759px; width:90%; position:relative;">
+    
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <div class="page-header">
+        <h2 style="margin-top:0;">{{ row.user.username }} · {{ month_label }}</h2>
+        <a href="{% url 'claims:review_employee_export' row.user.id %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Project</th>
+                <th>Claim type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Bill</th>
+                <th>Remarks</th>
+                <th>Status</th>
+                <th>Settlement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in row.claims %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ claim.project.name|default:"—" }}</td>
+                <td>{{ claim.claim_type.name }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
+                <td>{{ claim.remarks|default:"—" }}</td>
+                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+{% endfor %}
+
+<div class="card" id="claims-review-card">
+    <div class="page-header">
+        <h2>All claims &middot; {{ month_label }}</h2>
+        <a href="{% url 'claims:review_export' %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+    </div>
+    {% if claims %}
+    <input type="search" id="claims-review-search" class="table-search" placeholder="Search claims…">
+    <form method="post" action="{% url 'claims:review_bulk_approve' %}" id="review-form">
+        {% csrf_token %}
+        <input type="hidden" name="month" value="{{ selected_month }}">
+        <div class="page-header" style="margin-bottom:0.75rem;">
+            <span class="helptext">Select pending claims below, then approve them in bulk.</span>
+            <button type="submit" id="review-bulk-submit" class="btn btn-primary" style="width:auto;">Approve Selected</button>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="review-select-all"></th>
+                    <th>S.No</th>
+                    <th>Employee</th>
+                    <th>Project</th>
+                    <th>Claim type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Amount</th>
+                    <th>Bill</th>
+                    <th>Remarks</th>
+                    <th>Status</th>
+                    <th>Settlement</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for claim in claims %}
+                <tr>
+                    <td>
+                        {% if claim.status == "PENDING" %}
+                        <input type="checkbox" name="claim_ids" value="{{ claim.pk }}" class="review-row-checkbox">
+                        {% endif %}
+                    </td>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ claim.user.username }}</td>
+                    <td>{{ claim.project.name|default:"—" }}</td>
+                    <td>{{ claim.claim_type.name }}</td>
+                    <td>{{ claim.from_date }}</td>
+                    <td>{{ claim.to_date }}</td>
+                    <td>{{ claim.amount }}</td>
+                    <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
+                    <td>{{ claim.remarks|default:"—" }}</td>
+                    <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                    <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+                    <td style="white-space:nowrap;">
+                        {% if claim.status == "PENDING" %}
+                        <button type="submit" formaction="{% url 'claims:review_action' claim.pk 'approve' %}" class="btn" style="width:auto; background:var(--color-primary); color:#fff; padding:0.3rem 0.6rem;">Approve</button>
+                        <button type="submit" formaction="{% url 'claims:review_action' claim.pk 'reject' %}" class="btn" style="width:auto; background:transparent; color:var(--color-danger); padding:0.3rem 0.6rem;">Reject</button>
+                        {% else %}
+                        <span class="helptext">{{ claim.reviewed_by.username|default:"—" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+    {% else %}
+    <p class="helptext">No claims submitted yet.</p>
+    {% endif %}
+</div>
+<div class="card" style="margin-bottom:1.5rem;" id="claims-summary-card">
+    <h2>Employees &middot; {{ month_label }}</h2>
+    {% if employee_rows %}
+    <input type="search" id="claims-summary-search" class="table-search" placeholder="Search employees…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Total claims</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in employee_rows %}
+            <tr>
+                <td>
+                    <a href="#" onclick="document.getElementById('employee-claims-modal-{{ row.user.id }}').showModal(); return false;">
+                        {{ row.user.username }}
+                    </a>
+                </td>
+                <td>{{ row.total_claims }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No claims for this month.</p>
+    {% endif %}
+</div>
+<dialog id="bill-preview-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:640px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">Bill copy</h2>
+    <img id="bill-preview-image" src="" alt="Bill copy" style="max-width:100%; max-height:70vh; display:block; margin:0 auto; border-radius:var(--radius);">
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+
+<dialog id="select-records-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">No records selected</h2>
+    <p class="helptext">Please select at least one claim before approving.</p>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">OK</button>
+    </form>
+</dialog>
+
+<script>
+    function showBillPreview(url) {
+        document.getElementById('bill-preview-image').src = url;
+        document.getElementById('bill-preview-modal').showModal();
+    }
+    wireTableSearch('claims-summary-search', '#claims-summary-card');
+    wireTableSearch('claims-review-search', '#claims-review-card');
+
+    const reviewSelectAll = document.getElementById('review-select-all');
+    if (reviewSelectAll) {
+        reviewSelectAll.addEventListener('change', function () {
+            document.querySelectorAll('.review-row-checkbox').forEach(function (checkbox) {
+                checkbox.checked = reviewSelectAll.checked;
+            });
+        });
+    }
+
+    const reviewBulkSubmit = document.getElementById('review-bulk-submit');
+    if (reviewBulkSubmit) {
+        reviewBulkSubmit.addEventListener('click', function (event) {
+            const anyChecked = document.querySelectorAll('.review-row-checkbox:checked').length > 0;
+            if (!anyChecked) {
+                event.preventDefault();
+                document.getElementById('select-records-modal').showModal();
+            }
+        });
+    }
+</script>
+{% endblock %}

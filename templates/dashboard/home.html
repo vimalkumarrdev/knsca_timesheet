@@ -1,21 +1,109 @@
 {% extends "base.html" %}
-{% block title %}Admin Dashboard · KNSCA{% endblock %}
+{% block title %} Dashboard · KNSCA{% endblock %}
+{% block page_style %}max-width: none; width: 100%;{% endblock %}
 {% block content %}
+<div class="dashboard-grid" style="grid-template-columns: 0fr 1fr;">
 <div class="card" style="margin-bottom:1.5rem;">
     <h1>Admin Dashboard</h1>
-    <form method="get" style="display:flex; gap:0.75rem; align-items:end;">
-        <div class="form-group" style="margin-bottom:0;">
-            <label for="id_month">Month</label>
+    <form method="get">
+        <div class="form-group">
+            <label for="id_month">Select Month</label>
             <input type="month" id="id_month" name="month" value="{{ selected_month }}">
         </div>
         <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
     </form>
 </div>
-
 <div class="card" style="margin-bottom:1.5rem;">
-    <h2>Project-wise hours &middot; {{ month_label }}</h2>
-    <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see which employees logged hours on that project.</p>
-    <canvas id="projectChart"></canvas>
+    <h2 style="margin-top:0;">Claims Summary &middot; {{ month_label }}</h2>
+    <p class="helptext" style="margin-top:-0.5rem;">Click a box to see the claims and total amount behind it.</p>
+    <div class="stat-boxes">
+        <div class="stat-box stat-box-overall" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-overall').showModal();">
+            <div class="stat-value">{{ claim_summary.overall.count }}</div>
+            <div class="stat-label">Overall Claims</div>
+        </div>
+        <div class="stat-box stat-box-approved" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-approved').showModal();">
+            <div class="stat-value">{{ claim_summary.approved.count }}</div>
+            <div class="stat-label">Approved Claims</div>
+        </div>
+        <div class="stat-box stat-box-pending" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-pending').showModal();">
+            <div class="stat-value">{{ claim_summary.pending.count }}</div>
+            <div class="stat-label">Pending Claims</div>
+        </div>
+        <div class="stat-box stat-box-rejected" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-rejected').showModal();">
+            <div class="stat-value">{{ claim_summary.rejected.count }}</div>
+            <div class="stat-label">Rejected Claims</div>
+        </div>
+        <div class="stat-box stat-box-settled" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-settled').showModal();">
+            <div class="stat-value">{{ claim_summary.settled.count }}</div>
+            <div class="stat-label">Settled Claims</div>
+        </div>
+        <div class="stat-box stat-box-unsettled" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-unsettled').showModal();">
+            <div class="stat-value">{{ claim_summary.unsettled.count }}</div>
+            <div class="stat-label">Un-settled Claims</div>
+        </div>
+    </div>
+</div>
+</div>
+
+{% for key, data in claim_summary.items %}
+<dialog id="claim-summary-modal-{{ key }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:720px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">{{ data.label }} &middot; {{ month_label }}</h2>
+    <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount }}</strong></p>
+    {% if data.claims %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Project</th>
+                <th>Claim type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Settlement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in data.claims %}
+            <tr>
+                <td>{{ claim.user.username }}</td>
+                <td>{{ claim.project.name|default:"—" }}</td>
+                <td>{{ claim.claim_type.name }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No claims in this category.</p>
+    {% endif %}
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+{% endfor %}
+
+
+
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h2>Project-wise hours &middot; {{ month_label }}</h2>
+        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see which employees logged hours on that project.</p>
+        <canvas id="projectChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Employee-wise hours &middot; {{ month_label }}</h2>
+        <canvas id="employeeChart"></canvas>
+    </div>
 </div>
 
 <dialog id="project-employee-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:420px; width:90%; position:relative;">
@@ -29,10 +117,95 @@
     </form>
 </dialog>
 
-<div class="card" style="margin-bottom:1.5rem;">
-    <h2>Employee-wise hours &middot; {{ month_label }}</h2>
-    <canvas id="employeeChart"></canvas>
+<div class="dashboard-grid">
+    <div class="card">
+        <h2>Claims by type</h2>
+        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see the claims behind it.</p>
+        <canvas id="claimChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Project-wise claims &middot; {{ month_label }}</h2>
+        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see the claims behind it.</p>
+        <canvas id="projectClaimChart"></canvas>
+    </div>
 </div>
+
+{% for row in claim_type_rows %}
+<dialog id="claim-type-modal-{{ row.claim_type.id }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:560px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">{{ row.claim_type.name }}</h2>
+    {% if row.claims %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in row.claims %}
+            <tr>
+                <td>{{ claim.user.username }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                <td>{{ claim.remarks|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No claims of this type yet.</p>
+    {% endif %}
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+{% endfor %}
+
+{% for detail in project_claim_details %}
+<dialog id="project-claim-modal-{{ detail.project_idx }}-{{ detail.status_idx }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:560px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">{{ detail.project_label }} · {{ detail.status_label }}</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Claim type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Settlement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in detail.claims %}
+            <tr>
+                <td>{{ claim.user.username }}</td>
+                <td>{{ claim.claim_type.name }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+{% endfor %}
 
 <div class="card" id="days-filled-card">
     <div class="page-header">
@@ -70,6 +243,11 @@
 {{ project_chart_values|json_script:"project-values" }}
 {{ employee_chart_labels|json_script:"employee-labels" }}
 {{ employee_project_series|json_script:"employee-project-series" }}
+{{ claim_chart_labels|json_script:"claim-labels" }}
+{{ claim_chart_ids|json_script:"claim-ids" }}
+{{ claim_status_series|json_script:"claim-status-series" }}
+{{ project_claim_labels|json_script:"project-claim-labels" }}
+{{ project_claim_status_series|json_script:"project-claim-status-series" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
@@ -77,6 +255,11 @@
     const projectValues = JSON.parse(document.getElementById('project-values').textContent);
     const employeeLabels = JSON.parse(document.getElementById('employee-labels').textContent);
     const employeeProjectSeries = JSON.parse(document.getElementById('employee-project-series').textContent);
+    const claimLabels = JSON.parse(document.getElementById('claim-labels').textContent);
+    const claimIds = JSON.parse(document.getElementById('claim-ids').textContent);
+    const claimStatusSeries = JSON.parse(document.getElementById('claim-status-series').textContent);
+    const projectClaimLabels = JSON.parse(document.getElementById('project-claim-labels').textContent);
+    const projectClaimStatusSeries = JSON.parse(document.getElementById('project-claim-status-series').textContent);
 
     const palette = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5'];
 
@@ -138,6 +321,62 @@
             responsive: true,
             scales: { x: { stacked: true }, y: { stacked: true } },
             plugins: { legend: { display: true, position: 'bottom' } },
+        },
+    });
+
+    new Chart(document.getElementById('claimChart'), {
+        type: 'bar',
+        data: {
+            labels: claimLabels,
+            datasets: claimStatusSeries.map((series) => ({
+                label: series.status,
+                data: series.counts,
+                backgroundColor: series.color,
+            })),
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, ticks: { precision: 0 } },
+            },
+            plugins: { legend: { display: true, position: 'bottom' } },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const claimTypeId = claimIds[elements[0].index];
+                    document.getElementById('claim-type-modal-' + claimTypeId).showModal();
+                }
+            },
+            onHover: (event, elements) => {
+                event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+            },
+        },
+    });
+
+    new Chart(document.getElementById('projectClaimChart'), {
+        type: 'bar',
+        data: {
+            labels: projectClaimLabels,
+            datasets: projectClaimStatusSeries.map((series) => ({
+                label: series.status,
+                data: series.counts,
+                backgroundColor: series.color,
+            })),
+        },
+        options: {
+            responsive: true,
+            scales: { y: { ticks: { precision: 0 } } },
+            plugins: { legend: { display: true, position: 'bottom' } },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const el = elements[0];
+                    const modal = document.getElementById('project-claim-modal-' + el.index + '-' + el.datasetIndex);
+                    if (modal) modal.showModal();
+                }
+            },
+            onHover: (event, elements) => {
+                event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+            },
         },
     });
 </script>

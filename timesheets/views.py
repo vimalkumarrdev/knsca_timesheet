@@ -13,10 +13,23 @@ from django.views.generic import CreateView, TemplateView, UpdateView
 from accounts.mixins import AdminRequiredMixin, ManagerRequiredMixin
 from accounts.models import User
 from config.excel import export_xlsx
+from holidays.models import Holiday
+from leaves.models import Leave
 from projects.models import Project
 
 from .forms import TimesheetEntryForm
 from .models import OpenMonth, TimesheetEntry
+
+
+def _unavailable_dates_context(user):
+    leave_ranges = [
+        {"from": leave.from_date.isoformat(), "to": leave.to_date.isoformat()}
+        for leave in Leave.objects.filter(user=user)
+    ]
+    holiday_dates = [
+        holiday.date.isoformat() for holiday in Holiday.objects.all()
+    ]
+    return {"leave_ranges": leave_ranges, "holiday_dates": holiday_dates}
 
 
 def _group_entries_by_date(entries):
@@ -130,6 +143,11 @@ class MyWeekView(LoginRequiredMixin, CreateView):
     template_name = "timesheets/my_week.html"
     success_url = reverse_lazy("timesheets:my_week")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
@@ -142,6 +160,7 @@ class MyWeekView(LoginRequiredMixin, CreateView):
         ).select_related("project")
         context["date_groups"] = _group_entries_by_date(entries)
         context["month_label"] = today.strftime("%B")
+        context.update(_unavailable_dates_context(self.request.user))
         return context
 
 
@@ -183,8 +202,18 @@ class TimesheetEntryUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "timesheets/entry_form.html"
     success_url = reverse_lazy("timesheets:my_week")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def get_queryset(self):
         return TimesheetEntry.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(_unavailable_dates_context(self.request.user))
+        return context
 
 
 class DeleteDayEntriesView(LoginRequiredMixin, View):
@@ -259,6 +288,31 @@ class ApprovalsExportView(ManagerRequiredMixin, View):
         )
 
 
+class ApprovalsEmployeeExportView(ManagerRequiredMixin, View):
+    def get(self, request, user_id):
+        year, month = _parse_month(request.GET)
+        entries = TimesheetEntry.objects.filter(
+            user_id=user_id, date__year=year, date__month=month
+        ).select_related("user", "project").order_by("-date")
+
+        rows = [
+            (
+                entry.date,
+                entry.project.name,
+                float(entry.hours),
+                entry.get_work_mode_display(),
+                entry.remarks,
+            )
+            for entry in entries
+        ]
+        username = entries[0].user.username if entries else User.objects.filter(pk=user_id).values_list("username", flat=True).first()
+        return export_xlsx(
+            f"timesheet_{username}_{year:04d}-{month:02d}.xlsx",
+            ["Date", "Project", "Hours", "Work Mode", "Remarks"],
+            rows,
+        )
+
+
 class ProjectTimesheetView(ManagerRequiredMixin, TemplateView):
     template_name = "timesheets/project_timesheet.html"
 
@@ -324,6 +378,29 @@ class ProjectTimesheetExportView(ManagerRequiredMixin, View):
             f"project_timesheet_{year:04d}-{month:02d}.xlsx",
             headers,
             data_rows,
+        )
+
+
+class ProjectTimesheetProjectExportView(ManagerRequiredMixin, View):
+    def get(self, request, project_id):
+        year, month = _parse_month(request.GET)
+        entries = TimesheetEntry.objects.filter(
+            project_id=project_id, date__year=year, date__month=month
+        ).select_related("user", "project").order_by("-date")
+
+        rows = [
+            (entry.user.username, entry.date, float(entry.hours))
+            for entry in entries
+        ]
+        project_name = (
+            entries[0].project.name
+            if entries
+            else Project.objects.filter(pk=project_id).values_list("name", flat=True).first()
+        )
+        return export_xlsx(
+            f"project_timesheet_{project_name}_{year:04d}-{month:02d}.xlsx",
+            ["Employee", "Date", "Hours"],
+            rows,
         )
 
 

@@ -57,7 +57,10 @@
     <form method="dialog">
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
-    <h2 style="margin-top:0;">{{ row.user.username }} · {{ month_label }}</h2>
+    <div class="page-header">
+        <h2 style="margin-top:0;">{{ row.user.username }} · {{ month_label }}</h2>
+        <a href="{% url 'timesheets:approvals_employee_export' row.user.id %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+    </div>
 
     {% if row.date_groups %}
     <input type="search" id="modal-search-{{ row.user.id }}" class="table-search" placeholder="Search entries…">

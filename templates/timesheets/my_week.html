@@ -59,4 +59,36 @@
     {% include "timesheets/_entries_list.html" %}
 </div>
 <script>wireTableSearch('entries-search', '#entries-card');</script>
+
+{{ leave_ranges|json_script:"leave-ranges-data" }}
+{{ holiday_dates|json_script:"holiday-dates-data" }}
+<script>
+(function () {
+    const leaveRanges = JSON.parse(document.getElementById('leave-ranges-data').textContent);
+    const holidayDates = new Set(JSON.parse(document.getElementById('holiday-dates-data').textContent));
+    const dateInput = document.getElementById('{{ form.date.id_for_label }}');
+
+    function updateValidity() {
+        const value = dateInput.value;
+        if (!value) {
+            dateInput.setCustomValidity('');
+            return;
+        }
+        if (leaveRanges.some((r) => value >= r.from && value <= r.to)) {
+            dateInput.setCustomValidity('You are on leave on this date and cannot log timesheet hours.');
+        } else if (holidayDates.has(value)) {
+            dateInput.setCustomValidity('This date is a holiday and cannot be logged in the timesheet.');
+        } else {
+            dateInput.setCustomValidity('');
+        }
+    }
+
+    dateInput.addEventListener('input', updateValidity);
+    dateInput.addEventListener('change', function () {
+        updateValidity();
+        dateInput.reportValidity();
+    });
+    updateValidity();
+})();
+</script>
 {% endblock %}

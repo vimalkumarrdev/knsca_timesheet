@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Claims · KNSCA{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px; margin-bottom:1.5rem;">
+    <h1>Submit a claim</h1>
+
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.project.id_for_label }}">Project</label>
+            {{ form.project }}
+            {% if form.project.errors %}
+                <ul class="errorlist">{% for error in form.project.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.claim_type.id_for_label }}">Claim type</label>
+            {{ form.claim_type }}
+            {% if form.claim_type.errors %}
+                <ul class="errorlist">{% for error in form.claim_type.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.from_date.id_for_label }}">From date</label>
+            {{ form.from_date }}
+            {% if form.from_date.errors %}
+                <ul class="errorlist">{% for error in form.from_date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.to_date.id_for_label }}">To date</label>
+            {{ form.to_date }}
+            {% if form.to_date.errors %}
+                <ul class="errorlist">{% for error in form.to_date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.amount.id_for_label }}">Amount</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}
+                <ul class="errorlist">{% for error in form.amount.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.bill_copy.id_for_label }}">Bill copy</label>
+            {{ form.bill_copy }}
+            <p class="helptext" style="margin-top:0.35rem;">Required for some claim types.</p>
+            {% if form.bill_copy.errors %}
+                <ul class="errorlist">{% for error in form.bill_copy.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.remarks.id_for_label }}">Remarks</label>
+            {{ form.remarks }}
+            {% if form.remarks.errors %}
+                <ul class="errorlist">{% for error in form.remarks.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit claim</button>
+    </form>
+</div>
+
+<div class="card" id="claims-card">
+    <h1>My claims</h1>
+    {% if claims %}
+    <input type="search" id="claims-search" class="table-search" placeholder="Search claims…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Project</th>
+                <th>Claim type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Bill</th>
+                <th>Remarks</th>
+                <th>Status</th>
+                <th>Settlement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in claims %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ claim.project.name|default:"—" }}</td>
+                <td>{{ claim.claim_type.name }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
+                <td>{{ claim.remarks|default:"—" }}</td>
+                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No claims submitted yet.</p>
+    {% endif %}
+</div>
+
+<dialog id="claim-success-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">Claim submitted</h2>
+    <p>Your claim has been applied successfully.</p>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">OK</button>
+    </form>
+</dialog>
+
+<dialog id="bill-preview-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:640px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">Bill copy</h2>
+    <img id="bill-preview-image" src="" alt="Bill copy" style="max-width:100%; max-height:70vh; display:block; margin:0 auto; border-radius:var(--radius);">
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+
+<script>
+    function showBillPreview(url) {
+        document.getElementById('bill-preview-image').src = url;
+        document.getElementById('bill-preview-modal').showModal();
+    }
+    wireTableSearch('claims-search', '#claims-card');
+</script>
+{% for message in messages %}
+{% if "claim_popup" in message.tags %}
+<script>document.getElementById('claim-success-modal').showModal();</script>
+{% endif %}
+{% endfor %}
+{% endblock %}

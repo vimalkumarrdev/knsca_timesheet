@@ -3,6 +3,9 @@ from datetime import date
 
 from django import forms
 
+from holidays.models import Holiday
+from leaves.models import Leave
+
 from .models import OpenMonth, TimesheetEntry
 
 
@@ -17,7 +20,8 @@ class TimesheetEntryForm(forms.ModelForm):
             "remarks": forms.Textarea(attrs={"rows": 2, "placeholder": "Optional notes…"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
         super().__init__(*args, **kwargs)
         self.fields["project"].empty_label = "Select Project"
         today = date.today()
@@ -37,10 +41,20 @@ class TimesheetEntryForm(forms.ModelForm):
     def clean_date(self):
         entry_date = self.cleaned_data["date"]
         today = date.today()
-        if entry_date.year == today.year and entry_date.month == today.month:
-            return entry_date
-        if OpenMonth.objects.filter(year=entry_date.year, month=entry_date.month).exists():
-            return entry_date
-        raise forms.ValidationError(
-            "You can only log time for the current month, unless an admin has enabled that month."
-        )
+        is_current_month = entry_date.year == today.year and entry_date.month == today.month
+        is_open_month = OpenMonth.objects.filter(year=entry_date.year, month=entry_date.month).exists()
+        if not is_current_month and not is_open_month:
+            raise forms.ValidationError(
+                "You can only log time for the current month, unless an admin has enabled that month."
+            )
+
+        user = self.user or getattr(self.instance, "user", None)
+        if user and Leave.objects.filter(
+            user=user, from_date__lte=entry_date, to_date__gte=entry_date
+        ).exists():
+            raise forms.ValidationError("You are on leave on this date and cannot log timesheet hours.")
+
+        if Holiday.objects.filter(date=entry_date).exists():
+            raise forms.ValidationError("This date is a holiday and cannot be logged in the timesheet.")
+
+        return entry_date

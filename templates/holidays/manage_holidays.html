@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Manage Holidays · KNSCA{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px; margin-bottom:1.5rem;">
+    <h1>Add holiday</h1>
+
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.date.id_for_label }}">Date</label>
+            {{ form.date }}
+            {% if form.date.errors %}
+                <ul class="errorlist">{% for error in form.date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <ul class="errorlist">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label>Type</label>
+            {{ form.holiday_type }}
+            {% if form.holiday_type.errors %}
+                <ul class="errorlist">{% for error in form.holiday_type.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Add holiday</button>
+    </form>
+</div>
+
+<div class="card" id="holidays-card">
+    <h2>Holiday list</h2>
+    {% if holidays %}
+    <input type="search" id="holidays-search" class="table-search" placeholder="Search holidays…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Added by</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for holiday in holidays %}
+            <tr>
+                <td>{{ holiday.date }}</td>
+                <td>{{ holiday.name }}</td>
+                <td>{{ holiday.get_holiday_type_display }}</td>
+                <td>{{ holiday.created_by.username|default:"—" }}</td>
+                <td>
+                    <form method="post" action="{% url 'holidays:delete' holiday.pk %}" onsubmit="return confirm('Remove this holiday?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="width:auto; background:transparent; color:var(--color-danger); padding:0;">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No holidays added yet.</p>
+    {% endif %}
+</div>
+<script>wireTableSearch('holidays-search', '#holidays-card');</script>
+{% endblock %}

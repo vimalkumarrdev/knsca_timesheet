@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Log in · KNSCA Timesheet Filling{% endblock %}
+{% block title %}Log in · KNSCA Timesheet & Claim Portal Filling{% endblock %}
 
 {% block page_style %}background-image: url({% static 'images/login_banner.png' %}); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; margin: 0 auto; max-width: none;{% endblock %}
 
 {% block content %}
 <div class="auth-wrapper">
     <div class="auth-card">
-        <img src="{% static 'images/logo_dark_with_shadow-1.svg' %}" alt="KNSCA Timesheet" class="auth-logo">
-        <h1>KNSCA Timesheet</h1>
+        <img src="{% static 'images/logo_dark_with_shadow-1.svg' %}" alt="KNSCA Timesheet & Claim Portal" class="auth-logo">
+        <h1>KNSCA Timesheet & Claim Portal</h1>
         <p class="subtitle">Sign in to continue</p>
 
         {% if form.non_field_errors %}
