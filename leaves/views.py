@@ -3,13 +3,13 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView
 
-from accounts.mixins import ManagerRequiredMixin
+from accounts.mixins import AdminRequiredMixin
 
 from .forms import LeaveForm
 from .models import Leave
 
 
-class ManageLeavesView(ManagerRequiredMixin, CreateView):
+class ManageLeavesView(AdminRequiredMixin, CreateView):
     model = Leave
     form_class = LeaveForm
     template_name = "leaves/manage_leaves.html"
@@ -25,7 +25,7 @@ class ManageLeavesView(ManagerRequiredMixin, CreateView):
         return context
 
 
-class LeaveDeleteView(ManagerRequiredMixin, View):
+class LeaveDeleteView(AdminRequiredMixin, View):
     def post(self, request, pk):
         Leave.objects.filter(pk=pk).delete()
         return redirect("leaves:manage")

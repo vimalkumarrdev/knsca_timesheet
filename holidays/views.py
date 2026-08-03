@@ -3,13 +3,13 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView
 
-from accounts.mixins import ManagerRequiredMixin
+from accounts.mixins import AdminRequiredMixin
 
 from .forms import HolidayForm
 from .models import Holiday
 
 
-class ManageHolidaysView(ManagerRequiredMixin, CreateView):
+class ManageHolidaysView(AdminRequiredMixin, CreateView):
     model = Holiday
     form_class = HolidayForm
     template_name = "holidays/manage_holidays.html"
@@ -25,7 +25,7 @@ class ManageHolidaysView(ManagerRequiredMixin, CreateView):
         return context
 
 
-class HolidayDeleteView(ManagerRequiredMixin, View):
+class HolidayDeleteView(AdminRequiredMixin, View):
     def post(self, request, pk):
         Holiday.objects.filter(pk=pk).delete()
         return redirect("holidays:manage")

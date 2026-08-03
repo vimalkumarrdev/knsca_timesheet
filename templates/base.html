@@ -11,7 +11,10 @@
 <body>
     {% if user.is_authenticated %}
     <header class="navbar">
-        <span class="brand">KNSCA Timesheet & Claim Portal</span>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <span class="brand">KNSCA Timesheet & Claim Portal</span>
+            {% block header_title %}{% endblock %}
+        </div>
         <div style="display:flex; align-items:center;">
             <nav>
                 <a href="{% url 'accounts:redirect_by_role' %}">📊 Dashboard</a>
@@ -34,9 +37,9 @@
                     <div class="dropdown-content">
                         <a href="{% url 'timesheets:approvals' %}">Employee timesheet</a>
                         <a href="{% url 'timesheets:project_timesheet' %}">Project timesheet</a>
+                        {% if user.role == "ADMIN" %}
                         <a href="{% url 'leaves:manage' %}">Manage Leaves</a>
                         <a href="{% url 'holidays:manage' %}">Manage Holidays</a>
-                        {% if user.role == "ADMIN" %}
                         <a href="{% url 'timesheets:open_months' %}">Enable Month</a>
                         {% endif %}
                     </div>

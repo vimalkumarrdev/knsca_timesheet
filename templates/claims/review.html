@@ -2,6 +2,8 @@
 {% block title %}Claims Review · KNSCA{% endblock %}
 {% block page_style %}max-width: none; width: 100%;{% endblock %}
 {% block content %}
+
+<div class="dashboard-grid" style="grid-template-columns: 0fr 1fr;">
 <div class="card" style="margin-bottom:1.5rem;">
     <div class="page-header">
         <h1>Claims &middot; {{ month_label }}</h1>
@@ -15,8 +17,84 @@
         <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
     </form>
 </div>
+<div class="card" style="margin-bottom:1.5rem;">
+    <h2 style="margin-top:0;">Claims Summary &middot; {{ month_label }}</h2>
+    <p class="helptext" style="margin-top:-0.5rem;">Click a box to see the claims and total amount behind it.</p>
+    <div class="stat-boxes">
+        <div class="stat-box stat-box-overall" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-overall').showModal();">
+            <div class="stat-value">{{ claim_summary.overall.count }}</div>
+            <div class="stat-label">Overall Claims</div>
+        </div>
+        <div class="stat-box stat-box-approved" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-approved').showModal();">
+            <div class="stat-value">{{ claim_summary.approved.count }}</div>
+            <div class="stat-label">Approved Claims</div>
+        </div>
+        <div class="stat-box stat-box-pending" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-pending').showModal();">
+            <div class="stat-value">{{ claim_summary.pending.count }}</div>
+            <div class="stat-label">Pending Claims</div>
+        </div>
+        <div class="stat-box stat-box-rejected" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-rejected').showModal();">
+            <div class="stat-value">{{ claim_summary.rejected.count }}</div>
+            <div class="stat-label">Rejected Claims</div>
+        </div>
+        <div class="stat-box stat-box-settled" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-settled').showModal();">
+            <div class="stat-value">{{ claim_summary.settled.count }}</div>
+            <div class="stat-label">Settled Claims</div>
+        </div>
+        <div class="stat-box stat-box-unsettled" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-unsettled').showModal();">
+            <div class="stat-value">{{ claim_summary.unsettled.count }}</div>
+            <div class="stat-label">Un-settled Claims</div>
+        </div>
+    </div>
+</div>
+
+</div>
 
 
+{% for key, data in claim_summary.items %}
+<dialog id="claim-summary-modal-{{ key }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:720px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">{{ data.label }} &middot; {{ month_label }}</h2>
+    <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount }}</strong></p>
+    {% if data.claims %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Project</th>
+                <th>Claim type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Settlement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in data.claims %}
+            <tr>
+                <td>{{ claim.user.username }}</td>
+                <td>{{ claim.project.name|default:"—" }}</td>
+                <td>{{ claim.claim_type.name }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No claims in this category.</p>
+    {% endif %}
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+{% endfor %}
 
 {% for row in employee_rows %}
 <dialog id="employee-claims-modal-{{ row.user.id }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:759px; width:90%; position:relative;">

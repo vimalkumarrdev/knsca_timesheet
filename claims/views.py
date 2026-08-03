@@ -49,6 +49,34 @@ class MyClaimsView(LoginRequiredMixin, CreateView):
         return context
 
 
+def _claim_summary(claims):
+    categories = [
+        ("overall", "Overall Claims", lambda c: True),
+        ("approved", "Approved Claims", lambda c: c.status == Claim.Status.APPROVED),
+        ("pending", "Pending Claims", lambda c: c.status == Claim.Status.PENDING),
+        ("rejected", "Rejected Claims", lambda c: c.status == Claim.Status.REJECTED),
+        (
+            "settled", "Settled Claims",
+            lambda c: c.status == Claim.Status.APPROVED and c.settlement_status == Claim.SettlementStatus.SETTLED,
+        ),
+        (
+            "unsettled", "Un-settled Claims",
+            lambda c: c.status == Claim.Status.APPROVED and c.settlement_status == Claim.SettlementStatus.NOT_SETTLED,
+        ),
+    ]
+
+    summary = {}
+    for key, label, predicate in categories:
+        matched = [c for c in claims if predicate(c)]
+        summary[key] = {
+            "label": label,
+            "count": len(matched),
+            "total_amount": sum((c.amount for c in matched), start=0),
+            "claims": matched,
+        }
+    return summary
+
+
 class ClaimReviewView(ManagerRequiredMixin, TemplateView):
     template_name = "claims/review.html"
 
@@ -70,6 +98,7 @@ class ClaimReviewView(ManagerRequiredMixin, TemplateView):
 
         context["claims"] = claims
         context["employee_rows"] = employee_rows
+        context["claim_summary"] = _claim_summary(claims)
         context["selected_month"] = f"{year:04d}-{month:02d}"
         context["month_label"] = datetime.date(year, month, 1).strftime("%B %Y")
         return context
