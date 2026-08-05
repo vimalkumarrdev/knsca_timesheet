@@ -192,10 +192,13 @@ class ClaimSettlementView(ManagerRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        claims = Claim.objects.select_related(
-            "user", "claim_type", "project", "reviewed_by", "settled_by"
-        ).order_by("-created_at")
+        claims = list(
+            Claim.objects.select_related(
+                "user", "claim_type", "project", "reviewed_by", "settled_by"
+            ).order_by("-created_at")
+        )
         context["claims"] = claims
+        context["claim_summary"] = _claim_summary(claims)
         return context
 
 

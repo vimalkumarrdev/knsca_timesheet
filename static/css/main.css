@@ -360,7 +360,9 @@ h1, h2, h3 {
 }
 
 .table th {
-    color: var(--color-text-muted);
+    background-color: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
