@@ -22,14 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY", default="django-insecure-d)77&4%%h%7wjj&vi&o-l5pwk17e!8habhs@w2jmt_f44=ye!r")
-
+#SECRET_KEY = config("SECRET_KEY", default="django-insecure-d)77&4%%h%7wjj&vi&o-l5pwk17e!8habhs@w2jmt_f44=ye!r")
+SECRET_KEY = "Wf9WGt2OIu-IVc8x5lrDDzZTcz93E8B2ZyuqpTG6d2xCPxD0eMA_5EPfEGMm26-nvrs"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
 
+<<<<<<< Updated upstream
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="127.0.0.1,localhost,testserver"
 ).split(",")
+=======
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver","ec2-43-204-109-104.ap-south-1.compute.amazonaws.com"]
+>>>>>>> Stashed changes
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -90,8 +94,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": config("DB_NAME", default="knsca_timesheet"),
-        "USER": config("DB_USER", default="root"),
-        "PASSWORD": config("DB_PASSWORD", default=""),
+        "USER": config("DB_USER", default="knsca_app"),
+        "PASSWORD": config("DB_PASSWORD", default="Test@1234"),
         "HOST": config("DB_HOST", default="127.0.0.1"),
         "PORT": config("DB_PORT", default="3306"),
         "OPTIONS": {"charset": "utf8mb4"},
