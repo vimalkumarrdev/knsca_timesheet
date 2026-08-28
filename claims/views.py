@@ -27,6 +27,13 @@ def _parse_month(get_params):
         return today.year, today.month
 
 
+def _project_client_map():
+    return {
+        str(project.id): project.client_id
+        for project in Project.objects.filter(client__isnull=False)
+    }
+
+
 class MyClaimsView(LoginRequiredMixin, CreateView):
     model = Claim
     form_class = ClaimForm
@@ -43,9 +50,34 @@ class MyClaimsView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["claims"] = Claim.objects.filter(user=self.request.user).select_related(
-            "project", "claim_type"
-        )
+        today = datetime.date.today()
+        context["claims"] = Claim.objects.filter(
+            user=self.request.user, from_date__year=today.year, from_date__month=today.month
+        ).select_related("project__client", "claim_type").order_by("-from_date", "-created_at")
+        context["month_label"] = today.strftime("%B %Y")
+        context["project_client_map"] = _project_client_map()
+        return context
+
+
+class ViewClaimsView(LoginRequiredMixin, TemplateView):
+    template_name = "claims/view_claims.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        claims = Claim.objects.filter(user=self.request.user).select_related(
+            "project__client", "claim_type"
+        ).order_by("-from_date", "-created_at")
+
+        selected_month = self.request.GET.get("month", "")
+        if selected_month:
+            try:
+                year, month = (int(part) for part in selected_month.split("-"))
+                claims = claims.filter(from_date__year=year, from_date__month=month)
+            except ValueError:
+                selected_month = ""
+
+        context["claims"] = claims
+        context["selected_month"] = selected_month
         return context
 
 
@@ -86,7 +118,7 @@ class ClaimReviewView(ManagerRequiredMixin, TemplateView):
 
         claims = list(
             Claim.objects.filter(from_date__year=year, from_date__month=month)
-            .select_related("user", "claim_type", "project", "reviewed_by")
+            .select_related("user", "claim_type", "project__client", "reviewed_by")
             .order_by("user__username", "-created_at")
         )
 
@@ -109,10 +141,11 @@ class ClaimExportView(ManagerRequiredMixin, View):
         year, month = _parse_month(request.GET)
         claims = Claim.objects.filter(
             from_date__year=year, from_date__month=month
-        ).select_related("user", "claim_type", "project").order_by("user__username", "-created_at")
+        ).select_related("user", "claim_type", "project__client").order_by("user__username", "-created_at")
         rows = [
             (
                 claim.user.username,
+                claim.project.client.name if claim.project and claim.project.client else "",
                 claim.project.name if claim.project else "",
                 claim.claim_type.name,
                 claim.from_date,
@@ -126,7 +159,7 @@ class ClaimExportView(ManagerRequiredMixin, View):
         ]
         return export_xlsx(
             f"claims_{year:04d}-{month:02d}.xlsx",
-            ["Employee", "Project", "Claim Type", "From", "To", "Amount", "Remarks", "Status", "Settlement"],
+            ["Employee", "Client", "Project", "Claim Type", "From", "To", "Amount", "Remarks", "Status", "Settlement"],
             rows,
         )
 
@@ -136,9 +169,10 @@ class ClaimReviewEmployeeExportView(ManagerRequiredMixin, View):
         year, month = _parse_month(request.GET)
         claims = Claim.objects.filter(
             user_id=user_id, from_date__year=year, from_date__month=month
-        ).select_related("user", "claim_type", "project").order_by("-created_at")
+        ).select_related("user", "claim_type", "project__client").order_by("-created_at")
         rows = [
             (
+                claim.project.client.name if claim.project and claim.project.client else "",
                 claim.project.name if claim.project else "",
                 claim.claim_type.name,
                 claim.from_date,
@@ -153,7 +187,7 @@ class ClaimReviewEmployeeExportView(ManagerRequiredMixin, View):
         username = claims[0].user.username if claims else User.objects.filter(pk=user_id).values_list("username", flat=True).first()
         return export_xlsx(
             f"claims_{username}_{year:04d}-{month:02d}.xlsx",
-            ["Project", "Claim Type", "From", "To", "Amount", "Remarks", "Status", "Settlement"],
+            ["Client", "Project", "Claim Type", "From", "To", "Amount", "Remarks", "Status", "Settlement"],
             rows,
         )
 
@@ -194,7 +228,7 @@ class ClaimSettlementView(ManagerRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         claims = list(
             Claim.objects.select_related(
-                "user", "claim_type", "project", "reviewed_by", "settled_by"
+                "user", "claim_type", "project__client", "reviewed_by", "settled_by"
             ).order_by("-created_at")
         )
         context["claims"] = claims
@@ -235,12 +269,13 @@ class ClaimSettlementBulkSettleView(ManagerRequiredMixin, View):
 class ClaimSettlementExportView(ManagerRequiredMixin, View):
     def get(self, request):
         claims = Claim.objects.select_related(
-            "user", "claim_type", "project", "settled_by"
+            "user", "claim_type", "project__client", "settled_by"
         ).order_by("-created_at")
         rows = [
             (
                 idx,
                 claim.user.username,
+                claim.project.client.name if claim.project and claim.project.client else "",
                 claim.project.name if claim.project else "",
                 claim.claim_type.name,
                 float(claim.amount),
@@ -253,7 +288,7 @@ class ClaimSettlementExportView(ManagerRequiredMixin, View):
         ]
         return export_xlsx(
             "claim_settlement.xlsx",
-            ["S.No", "Employee", "Project", "Claim Type", "Amount", "Status", "Settlement", "Settled By", "Settled Month"],
+            ["S.No", "Employee", "Client", "Project", "Claim Type", "Amount", "Status", "Settlement", "Settled By", "Settled Month"],
             rows,
         )
 
@@ -297,7 +332,7 @@ class ProjectWiseClaimsView(ManagerRequiredMixin, TemplateView):
             return pending_approval_amount, settled_amount, not_settled_amount
 
         rows = []
-        for project in Project.objects.order_by("name"):
+        for project in Project.objects.select_related("client").order_by("name"):
             project_claims = claims_by_project.get(project.id, [])
             if not project_claims:
                 continue
@@ -335,9 +370,10 @@ class ProjectWiseClaimsExportView(ManagerRequiredMixin, View):
         year, month = _parse_month(request.GET)
         claims = Claim.objects.filter(
             from_date__year=year, from_date__month=month
-        ).select_related("user", "claim_type", "project").order_by("project__name", "-created_at")
+        ).select_related("user", "claim_type", "project__client").order_by("project__name", "-created_at")
         rows = [
             (
+                claim.project.client.name if claim.project and claim.project.client else "",
                 claim.project.name if claim.project else "Unassigned",
                 claim.user.username,
                 claim.claim_type.name,
@@ -351,7 +387,7 @@ class ProjectWiseClaimsExportView(ManagerRequiredMixin, View):
         ]
         return export_xlsx(
             f"project_wise_claims_{year:04d}-{month:02d}.xlsx",
-            ["Project", "Employee", "Claim Type", "From", "To", "Amount", "Status", "Settlement"],
+            ["Client", "Project", "Employee", "Claim Type", "From", "To", "Amount", "Status", "Settlement"],
             rows,
         )
 

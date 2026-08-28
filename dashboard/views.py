@@ -47,7 +47,7 @@ def _days_filled_rows(year, month):
 
 def _claim_type_rows():
     claim_types = ClaimType.objects.order_by("name")
-    claims = Claim.objects.select_related("user", "claim_type").order_by("claim_type_id", "-created_at")
+    claims = Claim.objects.select_related("user", "claim_type", "project__client").order_by("claim_type_id", "-created_at")
 
     claims_by_type = {}
     for claim in claims:
@@ -78,7 +78,7 @@ def _claim_type_rows():
 def _claim_summary(year, month):
     claims = list(
         Claim.objects.filter(from_date__year=year, from_date__month=month)
-        .select_related("user", "claim_type", "project")
+        .select_related("user", "claim_type", "project__client")
     )
 
     categories = [
@@ -111,7 +111,7 @@ def _claim_summary(year, month):
 def _project_claim_status_series(year, month):
     claims = list(
         Claim.objects.filter(from_date__year=year, from_date__month=month)
-        .select_related("project", "user", "claim_type")
+        .select_related("project__client", "user", "claim_type")
     )
 
     claims_by_project = {}
@@ -120,6 +120,10 @@ def _project_claim_status_series(year, month):
         claims_by_project.setdefault(key, []).append(claim)
 
     project_labels = sorted(claims_by_project.keys())
+    project_client_labels = {}
+    for label in project_labels:
+        project = claims_by_project[label][0].project
+        project_client_labels[label] = project.client.name if project and project.client else None
 
     status_config = [
         ("Pending", "#f59e0b", lambda c: c.status == Claim.Status.PENDING),
@@ -146,6 +150,7 @@ def _project_claim_status_series(year, month):
                     "project_idx": project_idx,
                     "status_idx": status_idx,
                     "project_label": project_label,
+                    "client_label": project_client_labels[project_label],
                     "status_label": label,
                     "claims": matched,
                 })

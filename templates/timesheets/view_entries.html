@@ -30,6 +30,7 @@
     <table class="table" style="margin-bottom:0.5rem;">
         <thead>
             <tr>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Hours</th>
             </tr>
@@ -37,6 +38,7 @@
         <tbody>
             {% for entry in group.entries %}
             <tr>
+                <td>{{ entry.project.client.name|default:"—" }}</td>
                 <td>{{ entry.project.name }}</td>
                 <td>{{ entry.hours }}</td>
             </tr>

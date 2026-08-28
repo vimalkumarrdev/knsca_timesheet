@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Bulk Edit Projects · KNSCA{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Bulk Edit Projects</h1>
+    <p class="helptext" style="margin-top:-0.5rem;">Update project names in bulk, then save all changes together. To change a project's client, edit that project individually.</p>
+
+    {% if formset.non_form_errors %}
+        <ul class="errorlist">
+            {% for error in formset.non_form_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset.forms %}
+                <tr>
+                    <td>{{ form.instance.client.name|default:"—" }}</td>
+                    <td>
+                        {{ form.id }}
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <ul class="errorlist">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary" style="width:auto;">Save all</button>
+        <a href="{% url 'projects:list' %}" class="btn" style="background:transparent; color:var(--color-text-muted);">Cancel</a>
+    </form>
+</div>
+{% endblock %}

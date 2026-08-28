@@ -21,6 +21,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Total claims</th>
                 <th>Total amount</th>
@@ -32,6 +33,7 @@
         <tbody>
             {% for row in rows %}
             <tr>
+                <td>{{ row.project.client.name|default:"—" }}</td>
                 <td>
                     <a href="#" onclick="document.getElementById('project-claims-modal-{{ forloop.counter }}').showModal(); return false;">
                         {{ row.project.name|default:"Unassigned" }}
@@ -56,7 +58,10 @@
     <form method="dialog">
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
-    <h2 style="margin-top:0;">{{ row.project.name|default:"Unassigned" }} · {{ month_label }}</h2>
+    <h2 class="client-project" style="margin-top:0;">
+        {% if row.project.client %}<span class="client-tag">{{ row.project.client.name }}</span>{% endif %}
+        <span class="project-name">{{ row.project.name|default:"Unassigned" }} · {{ month_label }}</span>
+    </h2>
     <table class="table">
         <thead>
             <tr>

@@ -7,6 +7,7 @@
         <div style="display:flex; gap:0.75rem;">
             <a href="{% url 'projects:export' %}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
             {% if user.role == "ADMIN" %}
+            <a href="{% url 'projects:bulk_edit' %}" class="btn" style="width:auto; background:transparent; color:var(--color-primary); border:1px solid var(--color-primary);">Bulk edit</a>
             <a href="{% url 'projects:add' %}" class="btn btn-primary" style="width:auto;">Add project</a>
             {% endif %}
         </div>
@@ -14,31 +15,91 @@
 
     {% if projects %}
     <input type="search" id="project-search" class="table-search" placeholder="Search projects…">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Last updated by</th>
-                <th>Last updated at</th>
-                {% if user.role == "ADMIN" %}<th></th>{% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for project in projects %}
-            <tr>
-                <td>{{ project.name }}</td>
-                <td>{{ project.last_updated_by|default:"—" }}</td>
-                <td>{{ project.updated_at }}</td>
-                {% if user.role == "ADMIN" %}
-                <td><a href="{% url 'projects:edit' project.pk %}">Edit</a></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form method="post" action="{% url 'projects:bulk_complete' %}" id="project-form">
+        {% csrf_token %}
+        {% if user.role == "ADMIN" %}
+        <div class="page-header" style="margin-bottom:0.75rem;">
+            <span class="helptext">Select in-progress projects below, then mark them completed in bulk.</span>
+            <button type="submit" id="project-bulk-submit" class="btn btn-primary" style="width:auto;">Mark Selected as Completed</button>
+        </div>
+        {% endif %}
+        <table class="table">
+            <thead>
+                <tr>
+                    {% if user.role == "ADMIN" %}<th><input type="checkbox" id="project-select-all"></th>{% endif %}
+                    <th>S.No</th>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Last updated by</th>
+                    <th>Last updated at</th>
+                    {% if user.role == "ADMIN" %}<th></th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    {% if user.role == "ADMIN" %}
+                    <td>
+                        {% if project.status == "IN_PROGRESS" %}
+                        <input type="checkbox" name="project_ids" value="{{ project.pk }}" class="project-row-checkbox">
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <span class="client-project">
+                            {% if project.client %}<span class="client-tag">{{ project.client.name }}</span>{% endif %}
+                            <span class="project-name">{{ project.name }}</span>
+                        </span>
+                    </td>
+                    <td><span class="badge badge-{{ project.status|lower }}">{{ project.get_status_display }}</span></td>
+                    <td>{{ project.last_updated_by|default:"—" }}</td>
+                    <td>{{ project.updated_at }}</td>
+                    {% if user.role == "ADMIN" %}
+                    <td><a href="{% url 'projects:edit' project.pk %}">Edit</a></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
     {% else %}
     <p class="helptext">No projects yet.</p>
     {% endif %}
 </div>
-<script>wireTableSearch('project-search', '.card');</script>
+
+<dialog id="select-records-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">No projects selected</h2>
+    <p class="helptext">Please select at least one project before marking it completed.</p>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">OK</button>
+    </form>
+</dialog>
+
+<script>
+    wireTableSearch('project-search', '.card');
+
+    const selectAllCheckbox = document.getElementById('project-select-all');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            document.querySelectorAll('.project-row-checkbox').forEach(function (checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        });
+    }
+
+    const bulkSubmit = document.getElementById('project-bulk-submit');
+    if (bulkSubmit) {
+        bulkSubmit.addEventListener('click', function (event) {
+            const anyChecked = document.querySelectorAll('.project-row-checkbox:checked').length > 0;
+            if (!anyChecked) {
+                event.preventDefault();
+                document.getElementById('select-records-modal').showModal();
+            }
+        });
+    }
+</script>
 {% endblock %}

@@ -17,4 +17,7 @@ urlpatterns = [
     path("project-timesheet/<int:project_id>/export/", views.ProjectTimesheetProjectExportView.as_view(), name="project_timesheet_project_export"),
     path("open-months/", views.OpenMonthView.as_view(), name="open_months"),
     path("open-months/<int:pk>/delete/", views.OpenMonthDeleteView.as_view(), name="open_months_delete"),
+    path("send-reminders/", views.SendTimesheetRemindersView.as_view(), name="send_reminders"),
+    path("send-reminders/selected/", views.SendSelectedTimesheetRemindersView.as_view(), name="send_reminders_selected"),
+    path("send-reminders/<int:user_id>/", views.SendTimesheetReminderView.as_view(), name="send_reminder"),
 ]

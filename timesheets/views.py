@@ -2,6 +2,7 @@ import calendar
 import datetime
 from itertools import groupby
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import DecimalField, Q, Sum
 from django.db.models.functions import Coalesce
@@ -17,6 +18,7 @@ from holidays.models import Holiday
 from leaves.models import Leave
 from projects.models import Project
 
+from .emails import send_timesheet_reminder, send_timesheet_reminders
 from .forms import TimesheetEntryForm
 from .models import OpenMonth, TimesheetEntry
 
@@ -30,6 +32,13 @@ def _unavailable_dates_context(user):
         holiday.date.isoformat() for holiday in Holiday.objects.all()
     ]
     return {"leave_ranges": leave_ranges, "holiday_dates": holiday_dates}
+
+
+def _project_client_map():
+    return {
+        str(project.id): project.client_id
+        for project in Project.objects.filter(client__isnull=False)
+    }
 
 
 def _group_entries_by_date(entries):
@@ -104,7 +113,7 @@ def _employee_daily_grid(year, month):
 
 
 def _project_daily_grid(year, month):
-    projects = Project.objects.annotate(
+    projects = Project.objects.select_related("client").annotate(
         total_hours=Coalesce(
             Sum(
                 "timesheet_entries__hours",
@@ -150,17 +159,22 @@ class MyWeekView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        messages.success(
+            self.request, "Your timesheet entry has been logged successfully.", extra_tags="timesheet_popup",
+        )
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = datetime.date.today()
         entries = TimesheetEntry.objects.filter(
             user=self.request.user, date__year=today.year, date__month=today.month
-        ).select_related("project")
+        ).select_related("project__client")
         context["date_groups"] = _group_entries_by_date(entries)
         context["month_label"] = today.strftime("%B")
         context.update(_unavailable_dates_context(self.request.user))
+        context["project_client_map"] = _project_client_map()
         return context
 
 
@@ -171,7 +185,7 @@ class ViewEntriesView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         entries = TimesheetEntry.objects.filter(
             user=self.request.user
-        ).select_related("project")
+        ).select_related("project__client")
 
         selected_month = self.request.GET.get("month", "")
         if selected_month:
@@ -213,6 +227,7 @@ class TimesheetEntryUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(_unavailable_dates_context(self.request.user))
+        context["project_client_map"] = _project_client_map()
         return context
 
 
@@ -220,7 +235,7 @@ class DeleteDayEntriesView(LoginRequiredMixin, View):
     def get(self, request, date):
         entries = TimesheetEntry.objects.filter(
             user=request.user, date=date
-        ).select_related("project")
+        ).select_related("project__client")
         if not entries.exists():
             return redirect("timesheets:my_week")
         return render(
@@ -245,7 +260,7 @@ class ApprovalsView(ManagerRequiredMixin, TemplateView):
 
         entries = TimesheetEntry.objects.filter(
             date__year=year, date__month=month
-        ).select_related("project").order_by("user_id", "-date")
+        ).select_related("project__client").order_by("user_id", "-date")
 
         entries_by_user = {
             user_id: _group_entries_by_date(list(group))
@@ -293,11 +308,12 @@ class ApprovalsEmployeeExportView(ManagerRequiredMixin, View):
         year, month = _parse_month(request.GET)
         entries = TimesheetEntry.objects.filter(
             user_id=user_id, date__year=year, date__month=month
-        ).select_related("user", "project").order_by("-date")
+        ).select_related("user", "project__client").order_by("-date")
 
         rows = [
             (
                 entry.date,
+                entry.project.client.name if entry.project.client else "",
                 entry.project.name,
                 float(entry.hours),
                 entry.get_work_mode_display(),
@@ -308,7 +324,7 @@ class ApprovalsEmployeeExportView(ManagerRequiredMixin, View):
         username = entries[0].user.username if entries else User.objects.filter(pk=user_id).values_list("username", flat=True).first()
         return export_xlsx(
             f"timesheet_{username}_{year:04d}-{month:02d}.xlsx",
-            ["Date", "Project", "Hours", "Work Mode", "Remarks"],
+            ["Date", "Client", "Project", "Hours", "Work Mode", "Remarks"],
             rows,
         )
 
@@ -367,9 +383,9 @@ class ProjectTimesheetExportView(ManagerRequiredMixin, View):
         month_label = datetime.date(year, month, 1).strftime("%B %Y")
         _, day_labels = _month_day_labels(year, month)
 
-        headers = ["Project"] + day_labels + [f"Total ({month_label})"]
+        headers = ["Client", "Project"] + day_labels + [f"Total ({month_label})"]
         data_rows = [
-            (row["project"].name,)
+            (row["project"].client.name if row["project"].client else "", row["project"].name)
             + tuple(float(h) if h is not None else "" for h in row["daily_hours"])
             + (float(row["total_hours"]),)
             for row in rows
@@ -386,17 +402,14 @@ class ProjectTimesheetProjectExportView(ManagerRequiredMixin, View):
         year, month = _parse_month(request.GET)
         entries = TimesheetEntry.objects.filter(
             project_id=project_id, date__year=year, date__month=month
-        ).select_related("user", "project").order_by("-date")
+        ).select_related("user", "project__client").order_by("-date")
 
         rows = [
             (entry.user.username, entry.date, float(entry.hours))
             for entry in entries
         ]
-        project_name = (
-            entries[0].project.name
-            if entries
-            else Project.objects.filter(pk=project_id).values_list("name", flat=True).first()
-        )
+        project = Project.objects.select_related("client").filter(pk=project_id).first()
+        project_name = project.name if project else ""
         return export_xlsx(
             f"project_timesheet_{project_name}_{year:04d}-{month:02d}.xlsx",
             ["Employee", "Date", "Hours"],
@@ -431,3 +444,65 @@ class OpenMonthDeleteView(AdminRequiredMixin, View):
     def post(self, request, pk):
         OpenMonth.objects.filter(pk=pk).delete()
         return redirect("timesheets:open_months")
+
+
+class SendTimesheetRemindersView(ManagerRequiredMixin, View):
+    def post(self, request):
+        selected_month = request.POST.get("month", "")
+        try:
+            year, month = (int(part) for part in selected_month.split("-"))
+        except ValueError:
+            today = datetime.date.today()
+            year, month = today.year, today.month
+
+        reminded = send_timesheet_reminders(year, month)
+        if reminded:
+            messages.success(request, f"Sent {len(reminded)} reminder email(s).")
+        else:
+            messages.info(request, "No reminders needed — everyone is up to date.")
+
+        redirect_url = request.POST.get("next") or "dashboard:home"
+        return redirect(redirect_url)
+
+
+class SendTimesheetReminderView(ManagerRequiredMixin, View):
+    def post(self, request, user_id):
+        selected_month = request.POST.get("month", "")
+        try:
+            year, month = (int(part) for part in selected_month.split("-"))
+        except ValueError:
+            today = datetime.date.today()
+            year, month = today.year, today.month
+
+        employee = User.objects.filter(pk=user_id, role=User.Role.EMPLOYEE).first()
+        if not employee:
+            messages.error(request, "That employee could not be found.")
+        elif send_timesheet_reminder(employee, year, month):
+            messages.success(request, f"Reminder email sent to {employee.username}.")
+        else:
+            messages.info(request, f"{employee.username} has no unfilled days (or no email on file) — nothing sent.")
+
+        redirect_url = request.POST.get("next") or "dashboard:home"
+        return redirect(redirect_url)
+
+
+class SendSelectedTimesheetRemindersView(ManagerRequiredMixin, View):
+    def post(self, request):
+        selected_month = request.POST.get("month", "")
+        try:
+            year, month = (int(part) for part in selected_month.split("-"))
+        except ValueError:
+            today = datetime.date.today()
+            year, month = today.year, today.month
+
+        user_ids = request.POST.getlist("user_ids")
+        employees = User.objects.filter(pk__in=user_ids, role=User.Role.EMPLOYEE)
+        reminded = [e.username for e in employees if send_timesheet_reminder(e, year, month)]
+
+        if reminded:
+            messages.success(request, f"Sent {len(reminded)} reminder email(s): {', '.join(reminded)}")
+        else:
+            messages.info(request, "No reminders were sent — the selected employees may already be up to date.")
+
+        redirect_url = request.POST.get("next") or "dashboard:home"
+        return redirect(redirect_url)

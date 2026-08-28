@@ -20,6 +20,13 @@
             {% endif %}
         </div>
         <div class="form-group">
+            <label for="{{ form.client.id_for_label }}">Client</label>
+            {{ form.client }}
+            {% if form.client.errors %}
+                <ul class="errorlist">{% for error in form.client.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
             <label for="{{ form.project.id_for_label }}">Project</label>
             {{ form.project }}
             {% if form.project.errors %}
@@ -81,6 +88,34 @@
         dateInput.reportValidity();
     });
     updateValidity();
+})();
+</script>
+
+{{ project_client_map|json_script:"project-client-map-data" }}
+<script>
+(function () {
+    const projectClientMap = JSON.parse(document.getElementById('project-client-map-data').textContent);
+    const clientSelect = document.getElementById('{{ form.client.id_for_label }}');
+    const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+    const projectOptions = Array.from(projectSelect.options);
+
+    function filterProjects() {
+        const selectedClient = clientSelect.value;
+        projectOptions.forEach(function (option) {
+            if (!option.value) {
+                option.hidden = false;
+                return;
+            }
+            option.hidden = selectedClient === '' || String(projectClientMap[option.value]) !== selectedClient;
+        });
+        if (projectSelect.selectedOptions.length && projectSelect.selectedOptions[0].hidden) {
+            projectSelect.value = '';
+        }
+        projectSelect.disabled = selectedClient === '';
+    }
+
+    clientSelect.addEventListener('change', filterProjects);
+    filterProjects();
 })();
 </script>
 {% endblock %}

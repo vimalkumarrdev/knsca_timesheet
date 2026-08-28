@@ -1,12 +1,12 @@
-{% load static %}
+{% load static static_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KNSCA Timesheet & Claim Portal{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <script src="{% static 'js/table-search.js' %}"></script>
+    <link rel="stylesheet" href="{% static_v 'css/main.css' %}">
+    <script src="{% static_v 'js/table-search.js' %}"></script>
 </head>
 <body>
     {% if user.is_authenticated %}
@@ -17,9 +17,9 @@
         </div>
         <div style="display:flex; align-items:center;">
             <nav>
+                {% if user.role == "MANAGER" or user.role == "ADMIN" %}
                 <a href="{% url 'accounts:redirect_by_role' %}">📊 Dashboard</a>
 
-                {% if user.role == "MANAGER" or user.role == "ADMIN" %}
                 <div class="dropdown">
                     <a href="{% url 'claims:review' %}" class="dropbtn">🧾 Claims ▾</a>
                     <div class="dropdown-content">
@@ -45,7 +45,23 @@
                     </div>
                 </div>
 
-                <a href="{% url 'projects:list' %}">📁 Projects</a>
+                <div class="dropdown">
+                    <a href="{% url 'projects:list' %}" class="dropbtn">📁 Projects ▾</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'projects:list' %}">Projects</a>
+                        <a href="{% url 'projects:client_list' %}">Clients</a>
+                    </div>
+                </div>
+
+                {% if user.role == "ADMIN" %}
+                <div class="dropdown">
+                    <a href="{% url 'accounts:user_list' %}" class="dropbtn">👥 User Management ▾</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'accounts:user_list' %}">All Users</a>
+                        <a href="{% url 'accounts:user_add' %}">Add User</a>
+                    </div>
+                </div>
+                {% endif %}
                 {% else %}
                 <div class="dropdown">
                     <a href="{% url 'timesheets:my_week' %}" class="dropbtn">🗓️ Time sheet ▾</a>
@@ -54,7 +70,13 @@
                         <a href="{% url 'timesheets:view_entries' %}">View entries</a>
                     </div>
                 </div>
-                <a href="{% url 'claims:my_claims' %}">🧾 Claims</a>
+                <div class="dropdown">
+                    <a href="{% url 'claims:my_claims' %}" class="dropbtn">🧾 Claims ▾</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'claims:my_claims' %}">My Claims</a>
+                        <a href="{% url 'claims:view_claims' %}">View All Claims</a>
+                    </div>
+                </div>
                 {% endif %}
             </nav>
 
@@ -78,7 +100,7 @@
     <main class="page{% block page_extra_class %}{% endblock %}" style="{% block page_style %}{% endblock %}">
         {% if messages %}
             {% for message in messages %}
-                {% if "claim_popup" not in message.tags %}
+                {% if "claim_popup" not in message.tags and "timesheet_popup" not in message.tags %}
                 <div class="card" style="margin-bottom:1rem;">{{ message }}</div>
                 {% endif %}
             {% endfor %}

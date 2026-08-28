@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}View All Claims · KNSCA{% endblock %}
+{% block content %}
+<div class="card" id="claims-card">
+    <div class="page-header">
+        <h1>All claims</h1>
+        <a href="{% url 'claims:my_claims' %}" class="btn" style="width:auto; background:transparent; color:var(--color-text-muted);">&larr; Back to My Claims</a>
+    </div>
+
+    <form method="get" style="margin-bottom:1.25rem; display:flex; gap:0.75rem; align-items:end;">
+        <div class="form-group" style="margin-bottom:0;">
+            <label for="id_month">Month</label>
+            <input type="month" id="id_month" name="month" value="{{ selected_month }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:auto;">View</button>
+        {% if selected_month %}
+        <a href="{% url 'claims:view_claims' %}" class="btn" style="width:auto; background:transparent; color:var(--color-text-muted);">Show all</a>
+        {% endif %}
+    </form>
+
+    {% if claims %}
+    <input type="search" id="claims-search" class="table-search" placeholder="Search claims…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Client</th>
+                <th>Project</th>
+                <th>Claim type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Bill</th>
+                <th>Remarks</th>
+                <th>Status</th>
+                <th>Settlement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in claims %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ claim.project.client.name|default:"—" }}</td>
+                <td>{{ claim.project.name|default:"—" }}</td>
+                <td>{{ claim.claim_type.name }}</td>
+                <td>{{ claim.from_date }}</td>
+                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.amount }}</td>
+                <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
+                <td>{{ claim.remarks|default:"—" }}</td>
+                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">{% if selected_month %}No claims for this month.{% else %}No claims submitted yet.{% endif %}</p>
+    {% endif %}
+</div>
+
+<dialog id="bill-preview-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:640px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">Bill copy</h2>
+    <img id="bill-preview-image" src="" alt="Bill copy" style="max-width:100%; max-height:70vh; display:block; margin:0 auto; border-radius:var(--radius);">
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
+    </form>
+</dialog>
+
+<script>
+    function showBillPreview(url) {
+        document.getElementById('bill-preview-image').src = url;
+        document.getElementById('bill-preview-modal').showModal();
+    }
+    wireTableSearch('claims-search', '#claims-card');
+</script>
+{% endblock %}

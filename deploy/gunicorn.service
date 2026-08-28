@@ -1,0 +1,16 @@
+[Unit]
+Description=KNSCA Timesheet & Claim Portal (gunicorn)
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/project/knsca_timesheet
+EnvironmentFile=/home/ec2-user/project/knsca_timesheet/.env
+ExecStart=/home/ec2-user/project/venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 3
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

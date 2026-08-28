@@ -57,6 +57,7 @@
         <thead>
             <tr>
                 <th>Employee</th>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
                 <th>From</th>
@@ -70,6 +71,7 @@
             {% for claim in data.claims %}
             <tr>
                 <td>{{ claim.user.username }}</td>
+                <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
                 <td>{{ claim.from_date }}</td>
@@ -93,16 +95,23 @@
 
 
 
-<div class="dashboard-grid">
-    <div class="card">
-        <h2>Project-wise hours &middot; {{ month_label }}</h2>
-        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see which employees logged hours on that project.</p>
-        <canvas id="projectChart"></canvas>
+<div class="card" style="margin-bottom:1.5rem; max-width:100%; overflow:hidden;">
+    <h2>Project-wise hours &middot; {{ month_label }}</h2>
+    <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see which employees logged hours on that project. Scroll sideways if there are many projects.</p>
+    <div style="overflow-x:auto; max-width:100%;">
+        <div id="projectChartWrapper" style="height:450px;">
+            <canvas id="projectChart"></canvas>
+        </div>
     </div>
+</div>
 
-    <div class="card">
-        <h2>Employee-wise hours &middot; {{ month_label }}</h2>
-        <canvas id="employeeChart"></canvas>
+<div class="card" style="margin-bottom:1.5rem; max-width:100%; overflow:hidden;">
+    <h2>Employee-wise hours &middot; {{ month_label }}</h2>
+    <p class="helptext" style="margin-top:-0.5rem;">Scroll sideways if there are many employees.</p>
+    <div style="overflow-x:auto; max-width:100%;">
+        <div id="employeeChartWrapper" style="height:450px;">
+            <canvas id="employeeChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -120,14 +129,22 @@
 <div class="dashboard-grid">
     <div class="card">
         <h2>Claims by type</h2>
-        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see the claims behind it.</p>
-        <canvas id="claimChart"></canvas>
+        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see the claims behind it. Scroll sideways if there are many claim types.</p>
+        <div style="overflow-x:auto;">
+            <div id="claimChartWrapper" style="height:400px;">
+                <canvas id="claimChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <div class="card">
         <h2>Project-wise claims &middot; {{ month_label }}</h2>
-        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see the claims behind it.</p>
-        <canvas id="projectClaimChart"></canvas>
+        <p class="helptext" style="margin-top:-0.5rem;">Click a bar to see the claims behind it. Scroll sideways if there are many projects.</p>
+        <div style="overflow-x:auto;">
+            <div id="projectClaimChartWrapper" style="height:400px;">
+                <canvas id="projectClaimChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -142,6 +159,8 @@
         <thead>
             <tr>
                 <th>Employee</th>
+                <th>Client</th>
+                <th>Project</th>
                 <th>From</th>
                 <th>To</th>
                 <th>Amount</th>
@@ -153,6 +172,8 @@
             {% for claim in row.claims %}
             <tr>
                 <td>{{ claim.user.username }}</td>
+                <td>{{ claim.project.client.name|default:"—" }}</td>
+                <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.from_date }}</td>
                 <td>{{ claim.to_date }}</td>
                 <td>{{ claim.amount }}</td>
@@ -176,7 +197,10 @@
     <form method="dialog">
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
-    <h2 style="margin-top:0;">{{ detail.project_label }} · {{ detail.status_label }}</h2>
+    <h2 class="client-project" style="margin-top:0;">
+        {% if detail.client_label %}<span class="client-tag">{{ detail.client_label }}</span>{% endif %}
+        <span class="project-name">{{ detail.project_label }} · {{ detail.status_label }}</span>
+    </h2>
     <table class="table">
         <thead>
             <tr>
@@ -214,30 +238,91 @@
     </div>
     {% if rows %}
     <input type="search" id="days-filled-search" class="table-search" placeholder="Search employees…">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Days filled</th>
-                <th>Remaining</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in rows %}
-            <tr>
-                <td>{{ row.user.username }}</td>
-                <td>{{ row.filled_days }}</td>
-                <td>{{ row.remaining_days }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form method="post" action="{% url 'timesheets:send_reminders_selected' %}" id="reminders-form">
+        {% csrf_token %}
+        <input type="hidden" name="month" value="{{ selected_month }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="page-header" style="margin-bottom:0.75rem;">
+            <span class="helptext">Select employees below, then send reminders in bulk.</span>
+            <div style="display:flex; gap:0.75rem;">
+                <button type="submit" id="reminders-bulk-submit" class="btn btn-primary" style="width:auto;">✉ Send Selected Reminders</button>
+                <button type="submit" formaction="{% url 'timesheets:send_reminders' %}" formnovalidate class="btn" style="width:auto; background:transparent; color:var(--color-primary); border:1px solid var(--color-primary);" onclick="return confirm('Send a reminder email to every employee with unfilled days for {{ month_label }}?');">✉ Send All Reminders</button>
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="reminders-select-all"></th>
+                    <th>S.No</th>
+                    <th>Employee</th>
+                    <th>Days filled</th>
+                    <th>Remaining</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>
+                        {% if row.remaining_days > 0 %}
+                        <input type="checkbox" name="user_ids" value="{{ row.user.id }}" class="reminders-row-checkbox">
+                        {% endif %}
+                    </td>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ row.user.username }}</td>
+                    <td>{{ row.filled_days }}</td>
+                    <td>{{ row.remaining_days }}</td>
+                    <td style="white-space:nowrap;">
+                        {% if row.remaining_days > 0 %}
+                        <button type="submit" formaction="{% url 'timesheets:send_reminder' row.user.id %}" formnovalidate class="btn" style="width:auto; background:transparent; color:var(--color-primary); padding:0;" onclick="return confirm('Send a reminder email to {{ row.user.username }}?');">✉ Remind</button>
+                        {% else %}
+                        <span class="helptext">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
     {% else %}
     <p class="helptext">No employees found.</p>
     {% endif %}
 </div>
 
-<script>wireTableSearch('days-filled-search', '#days-filled-card');</script>
+<dialog id="reminders-select-records-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">No employees selected</h2>
+    <p class="helptext">Please select at least one employee before sending reminders.</p>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">OK</button>
+    </form>
+</dialog>
+
+<script>
+    wireTableSearch('days-filled-search', '#days-filled-card');
+
+    const remindersSelectAll = document.getElementById('reminders-select-all');
+    if (remindersSelectAll) {
+        remindersSelectAll.addEventListener('change', function () {
+            document.querySelectorAll('.reminders-row-checkbox').forEach(function (checkbox) {
+                checkbox.checked = remindersSelectAll.checked;
+            });
+        });
+    }
+
+    const remindersBulkSubmit = document.getElementById('reminders-bulk-submit');
+    if (remindersBulkSubmit) {
+        remindersBulkSubmit.addEventListener('click', function (event) {
+            const anyChecked = document.querySelectorAll('.reminders-row-checkbox:checked').length > 0;
+            if (!anyChecked) {
+                event.preventDefault();
+                document.getElementById('reminders-select-records-modal').showModal();
+            }
+        });
+    }
+</script>
 
 {{ project_chart_labels|json_script:"project-labels" }}
 {{ project_chart_values|json_script:"project-values" }}
@@ -287,14 +372,46 @@
         document.getElementById('project-employee-modal').showModal();
     }
 
+    const VISIBLE_COLUMNS = 8;
+
+    function sizeChartWrapper(wrapperId, itemCount) {
+        const wrapper = document.getElementById(wrapperId);
+        const containerWidth = wrapper.parentElement.clientWidth;
+        const barWidth = containerWidth / VISIBLE_COLUMNS;
+        const desiredWidth = itemCount * barWidth;
+        wrapper.style.width = Math.max(containerWidth, desiredWidth) + 'px';
+    }
+
+    sizeChartWrapper('projectChartWrapper', projectLabels.length);
+    sizeChartWrapper('employeeChartWrapper', employeeLabels.length);
+    sizeChartWrapper('claimChartWrapper', claimLabels.length);
+    sizeChartWrapper('projectClaimChartWrapper', projectClaimLabels.length);
+
+    function wrapProjectLabel(label) {
+        const separatorIndex = label.indexOf(' - ');
+        if (separatorIndex !== -1) {
+            return [label.slice(0, separatorIndex), label.slice(separatorIndex + 3)];
+        }
+        if (label.length > 18) {
+            const mid = Math.floor(label.length / 2);
+            let splitAt = label.lastIndexOf(' ', mid);
+            if (splitAt === -1) splitAt = label.indexOf(' ', mid);
+            if (splitAt !== -1) {
+                return [label.slice(0, splitAt), label.slice(splitAt + 1)];
+            }
+        }
+        return label;
+    }
+
     new Chart(document.getElementById('projectChart'), {
         type: 'bar',
         data: {
-            labels: projectLabels,
+            labels: projectLabels.map(wrapProjectLabel),
             datasets: [{ label: 'Hours', data: projectValues, backgroundColor: '#2563eb' }],
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             onClick: (event, elements) => {
                 if (elements.length > 0) {
@@ -319,6 +436,7 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: { x: { stacked: true }, y: { stacked: true } },
             plugins: { legend: { display: true, position: 'bottom' } },
         },
@@ -336,6 +454,7 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 x: { stacked: true },
                 y: { stacked: true, ticks: { precision: 0 } },
@@ -365,6 +484,7 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: { y: { ticks: { precision: 0 } } },
             plugins: { legend: { display: true, position: 'bottom' } },
             onClick: (event, elements) => {
