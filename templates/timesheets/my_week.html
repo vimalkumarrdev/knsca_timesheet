@@ -20,6 +20,13 @@
             {% endif %}
         </div>
         <div class="form-group">
+            <label for="{{ form.client.id_for_label }}">Client</label>
+            {{ form.client }}
+            {% if form.client.errors %}
+                <ul class="errorlist">{% for error in form.client.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
             <label for="{{ form.project.id_for_label }}">Project</label>
             {{ form.project }}
             {% if form.project.errors %}
@@ -60,6 +67,22 @@
 </div>
 <script>wireTableSearch('entries-search', '#entries-card');</script>
 
+<dialog id="timesheet-success-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
+    <form method="dialog">
+        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+    </form>
+    <h2 style="margin-top:0;">Time logged</h2>
+    <p>Your timesheet entry has been logged successfully.</p>
+    <form method="dialog" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">OK</button>
+    </form>
+</dialog>
+{% for message in messages %}
+{% if "timesheet_popup" in message.tags %}
+<script>document.getElementById('timesheet-success-modal').showModal();</script>
+{% endif %}
+{% endfor %}
+
 {{ leave_ranges|json_script:"leave-ranges-data" }}
 {{ holiday_dates|json_script:"holiday-dates-data" }}
 <script>
@@ -89,6 +112,34 @@
         dateInput.reportValidity();
     });
     updateValidity();
+})();
+</script>
+
+{{ project_client_map|json_script:"project-client-map-data" }}
+<script>
+(function () {
+    const projectClientMap = JSON.parse(document.getElementById('project-client-map-data').textContent);
+    const clientSelect = document.getElementById('{{ form.client.id_for_label }}');
+    const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+    const projectOptions = Array.from(projectSelect.options);
+
+    function filterProjects() {
+        const selectedClient = clientSelect.value;
+        projectOptions.forEach(function (option) {
+            if (!option.value) {
+                option.hidden = false;
+                return;
+            }
+            option.hidden = selectedClient === '' || String(projectClientMap[option.value]) !== selectedClient;
+        });
+        if (projectSelect.selectedOptions.length && projectSelect.selectedOptions[0].hidden) {
+            projectSelect.value = '';
+        }
+        projectSelect.disabled = selectedClient === '';
+    }
+
+    clientSelect.addEventListener('change', filterProjects);
+    filterProjects();
 })();
 </script>
 {% endblock %}

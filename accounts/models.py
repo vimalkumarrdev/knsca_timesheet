@@ -14,6 +14,8 @@ class User(AbstractUser):
         related_name="team_members", limit_choices_to={"role": Role.MANAGER},
     )
     employee_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    employee_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
     department = models.CharField(max_length=50, blank=True)
     date_joined_company = models.DateField(null=True, blank=True)
 

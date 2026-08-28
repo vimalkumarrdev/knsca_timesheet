@@ -12,4 +12,7 @@ urlpatterns = [
     path("profile/", views.ProfileView.as_view(), name="profile"),
     path("profile/password/", views.AccountPasswordChangeView.as_view(), name="password_change"),
     path("profile/password/done/", views.AccountPasswordChangeDoneView.as_view(), name="password_change_done"),
+    path("users/", views.UserManagementListView.as_view(), name="user_list"),
+    path("users/add/", views.UserManagementCreateView.as_view(), name="user_add"),
+    path("users/<int:pk>/toggle/", views.UserManagementToggleView.as_view(), name="user_toggle"),
 ]

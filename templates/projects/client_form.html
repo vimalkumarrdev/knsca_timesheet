@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Client · KNSCA{% endblock %}
+{% block content %}
+<div class="card" style="max-width:640px;">
+    <h1>{% if object %}Edit client{% else %}Add client{% endif %}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">Client name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}
+                <ul class="errorlist">
+                    {% for error in form.status.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {% if object %}
+        <p class="helptext">Last updated by {{ object.last_updated_by|default:"—" }} on {{ object.updated_at }}</p>
+        {% endif %}
+
+        <div class="form-group">
+            <label>Projects</label>
+            <p class="helptext" style="margin-top:-0.25rem;">Add as many projects as this client needs — you can always add more later by editing the client again.</p>
+
+            {{ project_formset.management_form }}
+            {% if project_formset.non_form_errors %}
+                <ul class="errorlist">
+                    {% for error in project_formset.non_form_errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+
+            <div id="project-forms">
+                {% for pform in project_formset.forms %}
+                <div class="project-form-row" style="display:flex; gap:0.5rem; align-items:flex-start; margin-bottom:0.5rem;">
+                    {{ pform.id }}
+                    <div style="flex:1;">
+                        {{ pform.name }}
+                        {% if pform.name.errors %}
+                            <ul class="errorlist">{% for error in pform.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    {% if pform.instance.pk %}
+                    <label style="display:flex; align-items:center; gap:0.3rem; font-size:0.85rem; color:var(--color-danger); white-space:nowrap; padding-top:0.5rem;">
+                        {{ pform.DELETE }} Remove
+                    </label>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <template id="project-empty-form-template">
+                <div class="project-form-row" style="display:flex; gap:0.5rem; align-items:flex-start; margin-bottom:0.5rem;">
+                    <div style="flex:1;">{{ project_formset.empty_form.name }}</div>
+                </div>
+            </template>
+
+            <button type="button" id="add-project-row" class="btn" style="width:auto; background:transparent; color:var(--color-primary); padding:0.3rem 0;">+ Add another project</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:auto;">Save</button>
+        <a href="{% url 'projects:client_list' %}" class="btn" style="background:transparent; color:var(--color-text-muted);">Cancel</a>
+    </form>
+</div>
+
+<script>
+(function () {
+    const addBtn = document.getElementById('add-project-row');
+    const formsContainer = document.getElementById('project-forms');
+    const totalForms = document.getElementById('id_projects-TOTAL_FORMS');
+    const template = document.getElementById('project-empty-form-template');
+
+    addBtn.addEventListener('click', function () {
+        const formIndex = parseInt(totalForms.value, 10);
+        const html = template.innerHTML.replace(/__prefix__/g, formIndex);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html.trim();
+        formsContainer.appendChild(wrapper.firstElementChild);
+        totalForms.value = formIndex + 1;
+    });
+})();
+</script>
+{% endblock %}

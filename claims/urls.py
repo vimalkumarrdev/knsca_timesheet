@@ -6,6 +6,7 @@ app_name = "claims"
 
 urlpatterns = [
     path("", views.MyClaimsView.as_view(), name="my_claims"),
+    path("view/", views.ViewClaimsView.as_view(), name="view_claims"),
     path("review/", views.ClaimReviewView.as_view(), name="review"),
     path("review/export/", views.ClaimExportView.as_view(), name="review_export"),
     path("review/export/<int:user_id>/", views.ClaimReviewEmployeeExportView.as_view(), name="review_employee_export"),

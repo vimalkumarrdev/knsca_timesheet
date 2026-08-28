@@ -5,14 +5,17 @@ from django import forms
 
 from holidays.models import Holiday
 from leaves.models import Leave
+from projects.models import Client, Project
 
 from .models import OpenMonth, TimesheetEntry
 
 
 class TimesheetEntryForm(forms.ModelForm):
+    client = forms.ModelChoiceField(queryset=Client.objects.order_by("name"), required=True, label="Client")
+
     class Meta:
         model = TimesheetEntry
-        fields = ["date", "project", "hours", "work_mode", "remarks"]
+        fields = ["client", "project", "date", "hours", "work_mode", "remarks"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "hours": forms.NumberInput(attrs={"step": "0.25", "min": "0", "max": "24"}),
@@ -23,7 +26,13 @@ class TimesheetEntryForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        self.fields["client"].empty_label = "Select Client"
+        self.fields["project"].queryset = Project.objects.select_related("client").filter(client__isnull=False).order_by("name")
         self.fields["project"].empty_label = "Select Project"
+
+        if self.instance and self.instance.pk and self.instance.project_id:
+            self.fields["client"].initial = self.instance.project.client_id
+
         today = date.today()
         month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
 
@@ -37,6 +46,14 @@ class TimesheetEntryForm(forms.ModelForm):
             "min": min_date.isoformat(),
             "max": month_end.isoformat(),
         })
+
+    def clean(self):
+        cleaned_data = super().clean()
+        client = cleaned_data.get("client")
+        project = cleaned_data.get("project")
+        if client and project and project.client_id != client.id:
+            self.add_error("project", "Selected project does not belong to the selected client.")
+        return cleaned_data
 
     def clean_date(self):
         entry_date = self.cleaned_data["date"]

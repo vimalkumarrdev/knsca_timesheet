@@ -63,6 +63,7 @@
         <thead>
             <tr>
                 <th>Employee</th>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
                 <th>From</th>
@@ -76,6 +77,7 @@
             {% for claim in data.claims %}
             <tr>
                 <td>{{ claim.user.username }}</td>
+                <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
                 <td>{{ claim.from_date }}</td>
@@ -111,6 +113,7 @@
         <thead>
             <tr>
                 <th>S.No</th>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
                 <th>From</th>
@@ -126,6 +129,7 @@
             {% for claim in row.claims %}
             <tr>
                 <td>{{ forloop.counter }}</td>
+                <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
                 <td>{{ claim.from_date }}</td>
@@ -165,6 +169,7 @@
                     <th><input type="checkbox" id="review-select-all"></th>
                     <th>S.No</th>
                     <th>Employee</th>
+                    <th>Client</th>
                     <th>Project</th>
                     <th>Claim type</th>
                     <th>From</th>
@@ -187,6 +192,7 @@
                     </td>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ claim.user.username }}</td>
+                    <td>{{ claim.project.client.name|default:"—" }}</td>
                     <td>{{ claim.project.name|default:"—" }}</td>
                     <td>{{ claim.claim_type.name }}</td>
                     <td>{{ claim.from_date }}</td>

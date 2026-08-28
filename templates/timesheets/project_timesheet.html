@@ -30,8 +30,10 @@
             {% for row in rows %}
             <tr>
                 <td class="sticky-col" style="white-space:nowrap;">
-                    <a href="#" onclick="document.getElementById('modal-project-{{ row.project.id }}').showModal(); return false;">
-                        {{ row.project.name }}
+                    {% if row.project.client %}<span class="client-tag">{{ row.project.client.name }}</span>{% endif %}
+                    <a href="#" class="client-project" onclick="document.getElementById('modal-project-{{ row.project.id }}').showModal(); return false;">
+                        
+                        <span class="project-name">{{ row.project.name }}</span>
                     </a>
                 </td>
                 {% for cell in row.day_cells %}
@@ -58,7 +60,10 @@
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <div class="page-header">
-        <h2 style="margin-top:0;">{{ row.project.name }} · {{ month_label }}</h2>
+        <h2 class="client-project" style="margin-top:0;">
+            {% if row.project.client %}<span class="client-tag">{{ row.project.client.name }}</span>{% endif %}
+            <span class="project-name">{{ row.project.name }} · {{ month_label }}</span>
+        </h2>
         <a href="{% url 'timesheets:project_timesheet_project_export' row.project.id %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
     </div>
 
@@ -98,7 +103,10 @@
     <form method="dialog">
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
-    <h2 style="margin-top:0;">{{ row.project.name }} · {{ cell.group.date }}</h2>
+    <h2 class="client-project" style="margin-top:0;">
+        {% if row.project.client %}<span class="client-tag">{{ row.project.client.name }}</span>{% endif %}
+        <span class="project-name">{{ row.project.name }} · {{ cell.group.date }}</span>
+    </h2>
     <table class="table">
         <thead>
             <tr>

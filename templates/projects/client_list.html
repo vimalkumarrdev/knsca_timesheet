@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Clients · KNSCA{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1>Clients</h1>
+        {% if user.role == "ADMIN" %}
+        <a href="{% url 'projects:client_add' %}" class="btn btn-primary" style="width:auto;">Add client</a>
+        {% endif %}
+    </div>
+
+    {% if clients %}
+    <input type="search" id="client-search" class="table-search" placeholder="Search clients…">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Last updated by</th>
+                <th>Last updated at</th>
+                {% if user.role == "ADMIN" %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td>{{ client.name }}</td>
+                <td><span class="badge badge-{{ client.status|lower }}">{{ client.get_status_display }}</span></td>
+                <td>{{ client.last_updated_by|default:"—" }}</td>
+                <td>{{ client.updated_at }}</td>
+                {% if user.role == "ADMIN" %}
+                <td><a href="{% url 'projects:client_edit' client.pk %}">Edit</a></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="helptext">No clients yet.</p>
+    {% endif %}
+</div>
+<script>wireTableSearch('client-search', '.card');</script>
+{% endblock %}

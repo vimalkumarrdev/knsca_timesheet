@@ -72,6 +72,7 @@
     <table class="table" style="margin-bottom:0.5rem;">
         <thead>
             <tr>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Hours</th>
                 <th>Work mode</th>
@@ -81,6 +82,7 @@
         <tbody>
             {% for entry in group.entries %}
             <tr>
+                <td>{{ entry.project.client.name|default:"—" }}</td>
                 <td>{{ entry.project.name }}</td>
                 <td>{{ entry.hours }}</td>
                 <td>{{ entry.get_work_mode_display }}</td>
@@ -110,6 +112,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Client</th>
                 <th>Project</th>
                 <th>Hours</th>
                 <th>Work mode</th>
@@ -119,6 +122,7 @@
         <tbody>
             {% for entry in cell.group.entries %}
             <tr>
+                <td>{{ entry.project.client.name|default:"—" }}</td>
                 <td>{{ entry.project.name }}</td>
                 <td>{{ entry.hours }}</td>
                 <td>{{ entry.get_work_mode_display }}</td>
