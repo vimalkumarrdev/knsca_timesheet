@@ -53,15 +53,15 @@
     <h2 style="margin-top:0;">{{ data.label }} &middot; {{ month_label }}</h2>
     <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount }}</strong></p>
     {% if data.claims %}
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
                 <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Settlement</th>
@@ -74,8 +74,7 @@
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
                 <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
@@ -83,6 +82,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims in this category.</p>
     {% endif %}
@@ -155,14 +155,14 @@
     </form>
     <h2 style="margin-top:0;">{{ row.claim_type.name }}</h2>
     {% if row.claims %}
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
                 <th>Client</th>
                 <th>Project</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Remarks</th>
@@ -174,8 +174,7 @@
                 <td>{{ claim.user.username }}</td>
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
                 <td>{{ claim.remarks|default:"—" }}</td>
@@ -183,6 +182,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims of this type yet.</p>
     {% endif %}
@@ -201,13 +201,13 @@
         {% if detail.client_label %}<span class="client-tag">{{ detail.client_label }}</span>{% endif %}
         <span class="project-name">{{ detail.project_label }} · {{ detail.status_label }}</span>
     </h2>
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Settlement</th>
             </tr>
@@ -217,14 +217,14 @@
             <tr>
                 <td>{{ claim.user.username }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+</div>
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>
@@ -249,7 +249,8 @@
                 <button type="submit" formaction="{% url 'timesheets:send_reminders' %}" formnovalidate class="btn" style="width:auto; background:transparent; color:var(--color-primary); border:1px solid var(--color-primary);" onclick="return confirm('Send a reminder email to every employee with unfilled days for {{ month_label }}?');">✉ Send All Reminders</button>
             </div>
         </div>
-        <table class="table">
+        <div class="table-responsive">
+<table class="table">
             <thead>
                 <tr>
                     <th><input type="checkbox" id="reminders-select-all"></th>
@@ -283,6 +284,7 @@
                 {% endfor %}
             </tbody>
         </table>
+</div>
     </form>
     {% else %}
     <p class="helptext">No employees found.</p>
@@ -362,12 +364,14 @@
             body.innerHTML = '<p class="helptext">No hours logged on this project this month.</p>';
         } else {
             body.innerHTML = `
-                <table class="table">
+                <div class="table-responsive">
+<table class="table">
                     <thead><tr><th>Employee</th><th>Hours</th></tr></thead>
                     <tbody>
                         ${rows.map((row) => `<tr><td>${row.username}</td><td>${row.hours}</td></tr>`).join('')}
                     </tbody>
-                </table>`;
+                </table>
+</div>`;
         }
         document.getElementById('project-employee-modal').showModal();
     }

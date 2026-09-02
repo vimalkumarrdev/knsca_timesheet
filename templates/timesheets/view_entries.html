@@ -27,7 +27,8 @@
         <span>{{ group.date }}</span>
         <span class="helptext" style="font-size:0.85rem;">Total: {{ group.total_hours }}h</span>
     </h3>
-    <table class="table" style="margin-bottom:0.5rem;">
+    <div class="table-responsive">
+<table class="table" style="margin-bottom:0.5rem;">
         <thead>
             <tr>
                 <th>Client</th>
@@ -45,6 +46,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% endfor %}
     {% endfor %}
     {% else %}

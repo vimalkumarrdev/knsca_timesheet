@@ -5,7 +5,8 @@
     <h1>Delete entries for {{ date }}?</h1>
     <p class="helptext">This will permanently delete all {{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }} logged on this date.</p>
 
-    <table class="table" style="margin-bottom:1.25rem;">
+    <div class="table-responsive">
+<table class="table" style="margin-bottom:1.25rem;">
         <thead>
             <tr>
                 <th>Client</th>
@@ -23,6 +24,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
 
     <form method="post">
         {% csrf_token %}

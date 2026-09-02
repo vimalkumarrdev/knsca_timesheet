@@ -11,7 +11,8 @@
 
     {% if clients %}
     <input type="search" id="client-search" class="table-search" placeholder="Search clients…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Name</th>
@@ -35,6 +36,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No clients yet.</p>
     {% endif %}

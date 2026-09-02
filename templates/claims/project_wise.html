@@ -18,7 +18,8 @@
 <div class="card" id="project-wise-card">
     {% if rows %}
     <input type="search" id="project-wise-search" class="table-search" placeholder="Search projects…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Client</th>
@@ -48,6 +49,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims for this month.</p>
     {% endif %}
@@ -62,13 +64,13 @@
         {% if row.project.client %}<span class="client-tag">{{ row.project.client.name }}</span>{% endif %}
         <span class="project-name">{{ row.project.name|default:"Unassigned" }} · {{ month_label }}</span>
     </h2>
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Settlement</th>
@@ -79,8 +81,7 @@
             <tr>
                 <td>{{ claim.user.username }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
                 <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
@@ -88,6 +89,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>

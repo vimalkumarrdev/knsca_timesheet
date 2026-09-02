@@ -41,15 +41,15 @@
     <h2 style="margin-top:0;">{{ data.label }}</h2>
     <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount }}</strong></p>
     {% if data.claims %}
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
                 <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Settlement</th>
@@ -62,8 +62,7 @@
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
                 <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
@@ -71,6 +70,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims in this category.</p>
     {% endif %}
@@ -93,7 +93,8 @@
             <span class="helptext">Select claims below, then mark them settled in bulk.</span>
             <button type="submit" id="settlement-bulk-submit" class="btn btn-primary" style="width:auto;">Mark Selected as Settled</button>
         </div>
-        <table class="table">
+        <div class="table-responsive">
+<table class="table">
             <thead>
                 <tr>
                     <th><input type="checkbox" id="settlement-select-all"></th>
@@ -145,6 +146,7 @@
                 {% endfor %}
             </tbody>
         </table>
+</div>
     </form>
     {% else %}
     <p class="helptext">No claims submitted yet.</p>
@@ -157,14 +159,14 @@
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <h2 style="margin-top:0;">Claim #{{ forloop.counter }}</h2>
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <tbody>
             <tr><th>Employee</th><td>{{ claim.user.username }}</td></tr>
             <tr><th>Client</th><td>{{ claim.project.client.name|default:"—" }}</td></tr>
             <tr><th>Project</th><td>{{ claim.project.name|default:"—" }}</td></tr>
             <tr><th>Claim type</th><td>{{ claim.claim_type.name }}</td></tr>
-            <tr><th>From</th><td>{{ claim.from_date }}</td></tr>
-            <tr><th>To</th><td>{{ claim.to_date }}</td></tr>
+            <tr><th>Bill date</th><td>{{ claim.date }}</td></tr>
             <tr><th>Amount</th><td>{{ claim.amount }}</td></tr>
             <tr><th>Bill</th><td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td></tr>
             <tr><th>Remarks</th><td>{{ claim.remarks|default:"—" }}</td></tr>
@@ -175,6 +177,7 @@
             <tr><th>Settled at</th><td>{{ claim.settled_at|default:"—" }}</td></tr>
         </tbody>
     </table>
+</div>
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>

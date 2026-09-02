@@ -59,15 +59,15 @@
     <h2 style="margin-top:0;">{{ data.label }} &middot; {{ month_label }}</h2>
     <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount }}</strong></p>
     {% if data.claims %}
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
                 <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Settlement</th>
@@ -80,8 +80,7 @@
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
                 <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
@@ -89,6 +88,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims in this category.</p>
     {% endif %}
@@ -109,15 +109,15 @@
         <a href="{% url 'claims:review_employee_export' row.user.id %}?month={{ selected_month }}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
     </div>
 
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>S.No</th>
                 <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Bill</th>
                 <th>Remarks</th>
@@ -132,8 +132,7 @@
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
                 <td>{{ claim.remarks|default:"—" }}</td>
@@ -143,6 +142,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>
@@ -163,7 +163,8 @@
             <span class="helptext">Select pending claims below, then approve them in bulk.</span>
             <button type="submit" id="review-bulk-submit" class="btn btn-primary" style="width:auto;">Approve Selected</button>
         </div>
-        <table class="table">
+        <div class="table-responsive">
+<table class="table">
             <thead>
                 <tr>
                     <th><input type="checkbox" id="review-select-all"></th>
@@ -172,8 +173,7 @@
                     <th>Client</th>
                     <th>Project</th>
                     <th>Claim type</th>
-                    <th>From</th>
-                    <th>To</th>
+                    <th>Bill date</th>
                     <th>Amount</th>
                     <th>Bill</th>
                     <th>Remarks</th>
@@ -195,8 +195,7 @@
                     <td>{{ claim.project.client.name|default:"—" }}</td>
                     <td>{{ claim.project.name|default:"—" }}</td>
                     <td>{{ claim.claim_type.name }}</td>
-                    <td>{{ claim.from_date }}</td>
-                    <td>{{ claim.to_date }}</td>
+                    <td>{{ claim.date }}</td>
                     <td>{{ claim.amount }}</td>
                     <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
                     <td>{{ claim.remarks|default:"—" }}</td>
@@ -214,6 +213,7 @@
                 {% endfor %}
             </tbody>
         </table>
+</div>
     </form>
     {% else %}
     <p class="helptext">No claims submitted yet.</p>
@@ -223,7 +223,8 @@
     <h2>Employees &middot; {{ month_label }}</h2>
     {% if employee_rows %}
     <input type="search" id="claims-summary-search" class="table-search" placeholder="Search employees…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
@@ -243,6 +244,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims for this month.</p>
     {% endif %}

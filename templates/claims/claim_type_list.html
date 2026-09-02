@@ -9,7 +9,8 @@
 
     {% if claim_types %}
     <input type="search" id="claim-type-search" class="table-search" placeholder="Search claim types…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Name</th>
@@ -39,6 +40,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claim types yet.</p>
     {% endif %}

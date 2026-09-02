@@ -18,7 +18,8 @@
 <div class="card">
     <h2>Currently enabled months</h2>
     {% if open_months %}
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Month</th>
@@ -43,6 +44,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No past months enabled — only the current month is open for logging.</p>
     {% endif %}
