@@ -14,7 +14,8 @@
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}
-        <table class="table">
+        <div class="table-responsive">
+<table class="table">
             <thead>
                 <tr>
                     <th>Client</th>
@@ -36,6 +37,7 @@
                 {% endfor %}
             </tbody>
         </table>
+</div>
         <button type="submit" class="btn btn-primary" style="width:auto;">Save all</button>
         <a href="{% url 'projects:list' %}" class="btn" style="background:transparent; color:var(--color-text-muted);">Cancel</a>
     </form>

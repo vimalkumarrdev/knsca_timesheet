@@ -34,17 +34,10 @@
             {% endif %}
         </div>
         <div class="form-group">
-            <label for="{{ form.from_date.id_for_label }}">From date</label>
-            {{ form.from_date }}
-            {% if form.from_date.errors %}
-                <ul class="errorlist">{% for error in form.from_date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-            {% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.to_date.id_for_label }}">To date</label>
-            {{ form.to_date }}
-            {% if form.to_date.errors %}
-                <ul class="errorlist">{% for error in form.to_date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            <label for="{{ form.date.id_for_label }}">Bill date</label>
+            {{ form.date }}
+            {% if form.date.errors %}
+                <ul class="errorlist">{% for error in form.date.errors %}<li>{{ error }}</li>{% endfor %}</ul>
             {% endif %}
         </div>
         <div class="form-group">
@@ -80,15 +73,15 @@
     </div>
     {% if claims %}
     <input type="search" id="claims-search" class="table-search" placeholder="Search claims…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>S.No</th>
                 <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Bill</th>
                 <th>Remarks</th>
@@ -103,8 +96,7 @@
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
                 <td>{{ claim.remarks|default:"—" }}</td>
@@ -114,6 +106,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No claims submitted this month.</p>
     {% endif %}

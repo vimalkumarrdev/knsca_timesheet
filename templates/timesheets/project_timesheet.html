@@ -69,7 +69,8 @@
 
     {% if row.entries %}
     <input type="search" id="modal-project-search-{{ row.project.id }}" class="table-search" placeholder="Search entries…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
@@ -87,6 +88,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No entries logged for this month.</p>
     {% endif %}
@@ -107,7 +109,8 @@
         {% if row.project.client %}<span class="client-tag">{{ row.project.client.name }}</span>{% endif %}
         <span class="project-name">{{ row.project.name }} · {{ cell.group.date }}</span>
     </h2>
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
@@ -123,6 +126,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     <p class="helptext" style="margin-top:0.75rem;">Total: {{ cell.group.total_hours }}h</p>
     <form method="dialog" style="margin-top:0.5rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>

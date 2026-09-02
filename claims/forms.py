@@ -10,11 +10,17 @@ class ClaimForm(forms.ModelForm):
 
     class Meta:
         model = Claim
-        fields = ["client", "project", "claim_type", "from_date", "to_date", "amount", "bill_copy", "remarks"]
+        fields = ["client", "project", "claim_type", "date", "amount", "bill_copy", "remarks"]
         widgets = {
-            "from_date": forms.DateInput(attrs={"type": "date"}),
-            "to_date": forms.DateInput(attrs={"type": "date"}),
-            "amount": forms.NumberInput(attrs={"step": "0.01", "min": "0"}),
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "amount": forms.NumberInput(attrs={
+                "step": "1",
+                "min": "0",
+                "inputmode": "numeric",
+                "pattern": "[0-9]*",
+                "onkeydown": "return event.key !== '.' && event.key !== ',' && event.key !== 'e' && event.key !== 'E';",
+                "oninput": "if (/[.,]/.test(this.value)) { this.value = this.value.split(/[.,]/)[0]; }",
+            }),
             "remarks": forms.Textarea(attrs={"rows": 2, "placeholder": "Optional notes…"}),
         }
 
@@ -38,11 +44,6 @@ class ClaimForm(forms.ModelForm):
         bill_copy = cleaned_data.get("bill_copy")
         if claim_type and claim_type.bill_required and not bill_copy:
             self.add_error("bill_copy", "A bill copy is required for this claim type.")
-
-        from_date = cleaned_data.get("from_date")
-        to_date = cleaned_data.get("to_date")
-        if from_date and to_date and to_date < from_date:
-            raise forms.ValidationError("To date cannot be before from date.")
 
         client = cleaned_data.get("client")
         project = cleaned_data.get("project")

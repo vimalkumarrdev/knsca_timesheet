@@ -23,7 +23,8 @@
             <button type="submit" id="project-bulk-submit" class="btn btn-primary" style="width:auto;">Mark Selected as Completed</button>
         </div>
         {% endif %}
-        <table class="table">
+        <div class="table-responsive">
+<table class="table">
             <thead>
                 <tr>
                     {% if user.role == "ADMIN" %}<th><input type="checkbox" id="project-select-all"></th>{% endif %}
@@ -62,6 +63,7 @@
                 {% endfor %}
             </tbody>
         </table>
+</div>
     </form>
     {% else %}
     <p class="helptext">No projects yet.</p>

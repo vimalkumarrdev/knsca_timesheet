@@ -48,7 +48,8 @@
     <h2>Leave records</h2>
     {% if leaves %}
     <input type="search" id="leaves-search" class="table-search" placeholder="Search employees…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Employee</th>
@@ -77,6 +78,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No leave records yet.</p>
     {% endif %}

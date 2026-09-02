@@ -77,7 +77,7 @@ def _claim_type_rows():
 
 def _claim_summary(year, month):
     claims = list(
-        Claim.objects.filter(from_date__year=year, from_date__month=month)
+        Claim.objects.filter(date__year=year, date__month=month)
         .select_related("user", "claim_type", "project__client")
     )
 
@@ -110,7 +110,7 @@ def _claim_summary(year, month):
 
 def _project_claim_status_series(year, month):
     claims = list(
-        Claim.objects.filter(from_date__year=year, from_date__month=month)
+        Claim.objects.filter(date__year=year, date__month=month)
         .select_related("project__client", "user", "claim_type")
     )
 

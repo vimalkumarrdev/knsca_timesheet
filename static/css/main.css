@@ -346,10 +346,23 @@ h1, h2, h3 {
 }
 
 /* Tables */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .table {
     width: 100%;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
+}
+
+@media (max-width: 640px) {
+    .table th,
+    .table td {
+        white-space: nowrap;
+    }
 }
 
 .table th,
@@ -482,6 +495,18 @@ h1, h2, h3 {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+    .page-header {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    form[style*="display:flex"],
+    form[style*="display: flex"] {
+        flex-wrap: wrap;
+    }
 }
 
 .dashboard-grid {

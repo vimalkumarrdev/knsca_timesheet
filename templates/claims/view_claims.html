@@ -20,15 +20,15 @@
 
     {% if claims %}
     <input type="search" id="claims-search" class="table-search" placeholder="Search claims…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>S.No</th>
                 <th>Client</th>
                 <th>Project</th>
                 <th>Claim type</th>
-                <th>From</th>
-                <th>To</th>
+                <th>Bill date</th>
                 <th>Amount</th>
                 <th>Bill</th>
                 <th>Remarks</th>
@@ -43,8 +43,7 @@
                 <td>{{ claim.project.client.name|default:"—" }}</td>
                 <td>{{ claim.project.name|default:"—" }}</td>
                 <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.from_date }}</td>
-                <td>{{ claim.to_date }}</td>
+                <td>{{ claim.date }}</td>
                 <td>{{ claim.amount }}</td>
                 <td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td>
                 <td>{{ claim.remarks|default:"—" }}</td>
@@ -54,6 +53,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">{% if selected_month %}No claims for this month.{% else %}No claims submitted yet.{% endif %}</p>
     {% endif %}

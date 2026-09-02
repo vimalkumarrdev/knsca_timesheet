@@ -35,9 +35,8 @@ class Claim(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.SET_NULL, null=True, blank=True, related_name="claims",
     )
-    from_date = models.DateField()
-    to_date = models.DateField()
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField(verbose_name="bill date")
+    amount = models.PositiveIntegerField()
     bill_copy = models.FileField(upload_to="claim_bills/%Y/%m/", blank=True, null=True)
     remarks = models.TextField(blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
@@ -60,4 +59,4 @@ class Claim(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user} · {self.claim_type} · {self.from_date} to {self.to_date}"
+        return f"{self.user} · {self.claim_type} · {self.date}"

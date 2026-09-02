@@ -69,7 +69,8 @@
         <span>{{ group.date }}</span>
         <span class="helptext" style="font-size:0.85rem;">Total: {{ group.total_hours }}h</span>
     </h3>
-    <table class="table" style="margin-bottom:0.5rem;">
+    <div class="table-responsive">
+<table class="table" style="margin-bottom:0.5rem;">
         <thead>
             <tr>
                 <th>Client</th>
@@ -91,6 +92,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% endfor %}
     {% else %}
     <p class="helptext">No entries for this month.</p>
@@ -109,7 +111,8 @@
         <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <h2 style="margin-top:0;">{{ row.user.username }} · {{ cell.group.date }}</h2>
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Client</th>
@@ -131,6 +134,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     <p class="helptext" style="margin-top:0.75rem;">Total: {{ cell.group.total_hours }}h</p>
     <form method="dialog" style="margin-top:0.5rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>

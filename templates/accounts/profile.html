@@ -3,7 +3,8 @@
 {% block content %}
 <div class="card" style="max-width:480px;">
     <h1>My Profile</h1>
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <tbody>
             <tr><th>Username</th><td>{{ user.username }}</td></tr>
             <tr><th>First name</th><td>{{ user.first_name|default:"—" }}</td></tr>
@@ -15,6 +16,7 @@
             <tr><th>Last login</th><td>{{ user.last_login|default:"—" }}</td></tr>
         </tbody>
     </table>
+</div>
     <a href="{% url 'accounts:password_change' %}" class="btn btn-primary" style="width:auto; display:inline-block; margin-top:1rem;">Reset Password</a>
 </div>
 {% endblock %}

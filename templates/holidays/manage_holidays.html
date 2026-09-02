@@ -41,7 +41,8 @@
     <h2>Holiday list</h2>
     {% if holidays %}
     <input type="search" id="holidays-search" class="table-search" placeholder="Search holidays…">
-    <table class="table">
+    <div class="table-responsive">
+<table class="table">
         <thead>
             <tr>
                 <th>Date</th>
@@ -68,6 +69,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
     {% else %}
     <p class="helptext">No holidays added yet.</p>
     {% endif %}
