@@ -33,3 +33,4 @@ class HolidayDeleteView(AdminRequiredMixin, View):
 
 
 # Adding few commands
+# adding new line
