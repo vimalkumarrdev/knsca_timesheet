@@ -12,3 +12,6 @@ class HolidayForm(forms.ModelForm):
             "name": forms.TextInput(attrs={"placeholder": "e.g. Diwali, Republic Day…"}),
             "holiday_type": forms.RadioSelect(),
         }
+
+
+# This is a sample command

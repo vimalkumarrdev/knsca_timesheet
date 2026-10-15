@@ -21,7 +21,8 @@ class ManageHolidaysView(AdminRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["holidays"] = Holiday.objects.select_related("created_by").order_by("date")
+        context["holidays"] = Holiday.objects.select_related(
+            "created_by").order_by("date")
         return context
 
 
@@ -29,3 +30,6 @@ class HolidayDeleteView(AdminRequiredMixin, View):
     def post(self, request, pk):
         Holiday.objects.filter(pk=pk).delete()
         return redirect("holidays:manage")
+
+
+# Adding few commands
