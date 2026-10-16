@@ -7,3 +7,4 @@ staticfiles/
 media/
 .DS_Store
 .claude/settings.local.json
+config/settings.py

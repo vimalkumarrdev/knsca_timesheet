@@ -6,27 +6,33 @@
     <h2 style="margin-top:0;">Claims Summary</h2>
     <p class="helptext" style="margin-top:-0.5rem;">Click a box to see the claims and total amount behind it.</p>
     <div class="stat-boxes">
-        <div class="stat-box stat-box-overall" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-overall').showModal();">
+        <div class="stat-box stat-box-overall" style="cursor:pointer;"
+            onclick="document.getElementById('claim-summary-modal-overall').showModal();">
             <div class="stat-value">{{ claim_summary.overall.count }}</div>
             <div class="stat-label">Overall Claims</div>
         </div>
-        <div class="stat-box stat-box-approved" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-approved').showModal();">
+        <div class="stat-box stat-box-approved" style="cursor:pointer;"
+            onclick="document.getElementById('claim-summary-modal-approved').showModal();">
             <div class="stat-value">{{ claim_summary.approved.count }}</div>
             <div class="stat-label">Approved Claims</div>
         </div>
-        <div class="stat-box stat-box-pending" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-pending').showModal();">
+        <div class="stat-box stat-box-pending" style="cursor:pointer;"
+            onclick="document.getElementById('claim-summary-modal-pending').showModal();">
             <div class="stat-value">{{ claim_summary.pending.count }}</div>
             <div class="stat-label">Pending Claims</div>
         </div>
-        <div class="stat-box stat-box-rejected" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-rejected').showModal();">
+        <div class="stat-box stat-box-rejected" style="cursor:pointer;"
+            onclick="document.getElementById('claim-summary-modal-rejected').showModal();">
             <div class="stat-value">{{ claim_summary.rejected.count }}</div>
             <div class="stat-label">Rejected Claims</div>
         </div>
-        <div class="stat-box stat-box-settled" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-settled').showModal();">
+        <div class="stat-box stat-box-settled" style="cursor:pointer;"
+            onclick="document.getElementById('claim-summary-modal-settled').showModal();">
             <div class="stat-value">{{ claim_summary.settled.count }}</div>
             <div class="stat-label">Settled Claims</div>
         </div>
-        <div class="stat-box stat-box-unsettled" style="cursor:pointer;" onclick="document.getElementById('claim-summary-modal-unsettled').showModal();">
+        <div class="stat-box stat-box-unsettled" style="cursor:pointer;"
+            onclick="document.getElementById('claim-summary-modal-unsettled').showModal();">
             <div class="stat-value">{{ claim_summary.unsettled.count }}</div>
             <div class="stat-label">Un-settled Claims</div>
         </div>
@@ -34,43 +40,46 @@
 </div>
 
 {% for key, data in claim_summary.items %}
-<dialog id="claim-summary-modal-{{ key }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:720px; width:90%; position:relative;">
+<dialog id="claim-summary-modal-{{ key }}"
+    style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:720px; width:90%; position:relative;">
     <form method="dialog">
-        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+        <button type="submit" aria-label="Close"
+            style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <h2 style="margin-top:0;">{{ data.label }}</h2>
-    <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount }}</strong></p>
+    <p class="helptext">Total amount: <strong style="color:var(--color-text); font-size:1.1rem;">{{ data.total_amount
+            }}</strong></p>
     {% if data.claims %}
     <div class="table-responsive">
-<table class="table">
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Client</th>
-                <th>Project</th>
-                <th>Claim type</th>
-                <th>Bill date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Settlement</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for claim in data.claims %}
-            <tr>
-                <td>{{ claim.user.username }}</td>
-                <td>{{ claim.project.client.name|default:"—" }}</td>
-                <td>{{ claim.project.name|default:"—" }}</td>
-                <td>{{ claim.claim_type.name }}</td>
-                <td>{{ claim.date }}</td>
-                <td>{{ claim.amount }}</td>
-                <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
-                <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Claim type</th>
+                    <th>Bill date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Settlement status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for claim in data.claims %}
+                <tr>
+                    <td>{{ claim.user.username }}</td>
+                    <td>{{ claim.project.client.name|default:"—" }}</td>
+                    <td>{{ claim.project.name|default:"—" }}</td>
+                    <td>{{ claim.claim_type.name }}</td>
+                    <td>{{ claim.date }}</td>
+                    <td>{{ claim.amount }}</td>
+                    <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                    <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <p class="helptext">No claims in this category.</p>
     {% endif %}
@@ -83,7 +92,8 @@
 <div class="card" id="settlement-card">
     <div class="page-header">
         <h1>Claim Settlement</h1>
-        <a href="{% url 'claims:settlement_export' %}" class="btn" style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
+        <a href="{% url 'claims:settlement_export' %}" class="btn"
+            style="width:auto; background:var(--color-primary); color:#fff;">⬇ Export to Excel</a>
     </div>
     {% if claims %}
     <input type="search" id="settlement-search" class="table-search" placeholder="Search claims…">
@@ -91,62 +101,70 @@
         {% csrf_token %}
         <div class="page-header" style="margin-bottom:0.75rem;">
             <span class="helptext">Select claims below, then mark them settled in bulk.</span>
-            <button type="submit" id="settlement-bulk-submit" class="btn btn-primary" style="width:auto;">Mark Selected as Settled</button>
+            <button type="submit" id="settlement-bulk-submit" class="btn btn-primary" style="width:auto;">Mark Selected
+                as Settled</button>
         </div>
         <div class="table-responsive">
-<table class="table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="settlement-select-all"></th>
-                    <th>S.No</th>
-                    <th>Employee</th>
-                    <th>Client</th>
-                    <th>Project</th>
-                    <th>Claim type</th>
-                    <th>Amount</th>
-                    <th>Settlement</th>
-                    <th>Settled by</th>
-                    <th>Settled month</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for claim in claims %}
-                <tr>
-                    <td>
-                        {% if claim.status == "APPROVED" and claim.settlement_status == "NOT_SETTLED" %}
-                        <input type="checkbox" name="claim_ids" value="{{ claim.pk }}" class="settlement-row-checkbox">
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="#" onclick="document.getElementById('settlement-modal-{{ claim.pk }}').showModal(); return false;">
-                            {{ forloop.counter }}
-                        </a>
-                    </td>
-                    <td>{{ claim.user.username }}</td>
-                    <td>{{ claim.project.client.name|default:"—" }}</td>
-                    <td>{{ claim.project.name|default:"—" }}</td>
-                    <td>{{ claim.claim_type.name }}</td>
-                    <td>{{ claim.amount }}</td>
-                    <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
-                    <td>{{ claim.settled_by.username|default:"—" }}</td>
-                    <td>{% if claim.settled_at %}{{ claim.settled_at|date:"F Y" }}{% else %}—{% endif %}</td>
-                    <td style="white-space:nowrap;">
-                        {% if claim.status == "APPROVED" %}
-                            {% if claim.settlement_status == "SETTLED" %}
-                            <button type="submit" formaction="{% url 'claims:settlement_action' claim.pk 'unsettle' %}" class="btn" style="width:auto; background:transparent; color:var(--color-danger); padding:0.3rem 0.6rem;">Unsettle</button>
-                            {% else %}
-                            <button type="submit" formaction="{% url 'claims:settlement_action' claim.pk 'settle' %}" class="btn" style="width:auto; background:var(--color-primary); color:#fff; padding:0.3rem 0.6rem;">Mark Settled</button>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="settlement-select-all"></th>
+                        <th>S.No</th>
+                        <th>Employee</th>
+                        <th>Client</th>
+                        <th>Project</th>
+                        <th>Claim type</th>
+                        <th>Amount</th>
+                        <th>Settlement status</th>
+                        <th>Claim Date</th>
+                        <th>Settled month</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claim in claims %}
+                    <tr>
+                        <td>
+                            {% if claim.status == "APPROVED" and claim.settlement_status == "NOT_SETTLED" %}
+                            <input type="checkbox" name="claim_ids" value="{{ claim.pk }}"
+                                class="settlement-row-checkbox">
                             {% endif %}
-                        {% else %}
-                        <span class="helptext">—</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-</div>
+                        </td>
+                        <td>
+                            <a href="#"
+                                onclick="document.getElementById('settlement-modal-{{ claim.pk }}').showModal(); return false;">
+                                {{ forloop.counter }}
+                            </a>
+                        </td>
+                        <td>{{ claim.user.username }}</td>
+                        <td>{{ claim.project.client.name|default:"—" }}</td>
+                        <td>{{ claim.project.name|default:"—" }}</td>
+                        <td>{{ claim.claim_type.name }}</td>
+                        <td>{{ claim.amount }}</td>
+                        <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+                        <td>{{ claim.created_at|date:"M j, Y" }}</td>
+                        <td>{% if claim.settled_at %}{{ claim.settled_at|date:"F Y" }}{% else %}—{% endif %}</td>
+                        <td style="white-space:nowrap;">
+                            {% if claim.status == "APPROVED" %}
+                            {% if claim.settlement_status == "SETTLED" %}
+                            <button type="submit" formaction="{% url 'claims:settlement_action' claim.pk 'unsettle' %}"
+                                class="btn"
+                                style="width:auto; background:transparent; color:var(--color-danger); padding:0.3rem 0.6rem;">Unsettle</button>
+                            {% else %}
+                            <button type="submit" formaction="{% url 'claims:settlement_action' claim.pk 'settle' %}"
+                                class="btn"
+                                style="width:auto; background:var(--color-primary); color:#fff; padding:0.3rem 0.6rem;">Mark
+                                Settled</button>
+                            {% endif %}
+                            {% else %}
+                            <span class="helptext">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </form>
     {% else %}
     <p class="helptext">No claims submitted yet.</p>
@@ -154,50 +172,102 @@
 </div>
 
 {% for claim in claims %}
-<dialog id="settlement-modal-{{ claim.pk }}" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:480px; width:90%; position:relative;">
+<dialog id="settlement-modal-{{ claim.pk }}"
+    style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:480px; width:90%; position:relative;">
     <form method="dialog">
-        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+        <button type="submit" aria-label="Close"
+            style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <h2 style="margin-top:0;">Claim #{{ forloop.counter }}</h2>
     <div class="table-responsive">
-<table class="table">
-        <tbody>
-            <tr><th>Employee</th><td>{{ claim.user.username }}</td></tr>
-            <tr><th>Client</th><td>{{ claim.project.client.name|default:"—" }}</td></tr>
-            <tr><th>Project</th><td>{{ claim.project.name|default:"—" }}</td></tr>
-            <tr><th>Claim type</th><td>{{ claim.claim_type.name }}</td></tr>
-            <tr><th>Bill date</th><td>{{ claim.date }}</td></tr>
-            <tr><th>Amount</th><td>{{ claim.amount }}</td></tr>
-            <tr><th>Bill</th><td>{% if claim.bill_copy %}<a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>{% else %}—{% endif %}</td></tr>
-            <tr><th>Remarks</th><td>{{ claim.remarks|default:"—" }}</td></tr>
-            <tr><th>Status</th><td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td></tr>
-            <tr><th>Reviewed by</th><td>{{ claim.reviewed_by.username|default:"—" }}</td></tr>
-            <tr><th>Settlement</th><td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td></tr>
-            <tr><th>Settled by</th><td>{{ claim.settled_by.username|default:"—" }}</td></tr>
-            <tr><th>Settled at</th><td>{{ claim.settled_at|default:"—" }}</td></tr>
-        </tbody>
-    </table>
-</div>
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>Employee</th>
+                    <td>{{ claim.user.username }}</td>
+                </tr>
+                <tr>
+                    <th>Client</th>
+                    <td>{{ claim.project.client.name|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th>Project</th>
+                    <td>{{ claim.project.name|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th>Claim type</th>
+                    <td>{{ claim.claim_type.name }}</td>
+                </tr>
+                <tr>
+                    <th>Bill date</th>
+                    <td>{{ claim.date }}</td>
+                </tr>
+                <tr>
+                    <th>Amount</th>
+                    <td>{{ claim.amount }}</td>
+                </tr>
+                <tr>
+                    <th>Bill</th>
+                    <td>
+                        {% if claim.bill_copy %}
+                        <a href="#" onclick="showBillPreview('{{ claim.bill_copy.url }}'); return false;">View</a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Remarks</th>
+                    <td>{{ claim.remarks|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td><span class="badge badge-{{ claim.status|lower }}">{{ claim.get_status_display }}</span></td>
+                </tr>
+                <tr>
+                    <th>Reviewed by</th>
+                    <td>{{ claim.reviewed_by.username|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th>Settlement status</th>
+                    <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
+                </tr>
+                <tr>
+                    <th>Settled by</th>
+                    <td>{{ claim.settled_by.username|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th>Settled at</th>
+                    <td>{{ claim.settled_at|default:"—" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>
 </dialog>
 {% endfor %}
 
-<dialog id="bill-preview-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:640px; width:90%; position:relative;">
+<dialog id="bill-preview-modal"
+    style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:640px; width:90%; position:relative;">
     <form method="dialog">
-        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+        <button type="submit" aria-label="Close"
+            style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <h2 style="margin-top:0;">Bill copy</h2>
-    <img id="bill-preview-image" src="" alt="Bill copy" style="max-width:100%; max-height:70vh; display:block; margin:0 auto; border-radius:var(--radius);">
+    <img id="bill-preview-image" src="" alt="Bill copy"
+        style="max-width:100%; max-height:70vh; display:block; margin:0 auto; border-radius:var(--radius);">
     <form method="dialog" style="margin-top:1rem;">
         <button type="submit" class="btn" style="background:transparent; color:var(--color-text-muted);">Close</button>
     </form>
 </dialog>
 
-<dialog id="select-records-modal" style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
+<dialog id="select-records-modal"
+    style="border-radius:var(--radius); border:1px solid var(--color-border); box-shadow:var(--shadow); padding:1.5rem; max-width:360px; width:90%; position:relative;">
     <form method="dialog">
-        <button type="submit" aria-label="Close" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
+        <button type="submit" aria-label="Close"
+            style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; font-size:1.25rem; line-height:1; color:var(--color-text-muted); cursor:pointer; padding:0.25rem;">&times;</button>
     </form>
     <h2 style="margin-top:0;">No records selected</h2>
     <p class="helptext">Please select at least one claim before marking it settled.</p>
