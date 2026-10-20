@@ -105,7 +105,7 @@
                     <th>Claim type</th>
                     <th>Amount</th>
                     <th>Settlement</th>
-                    <th>Settled by</th>
+                    <th>Claim Date</th>
                     <th>Settled month</th>
                     <th></th>
                 </tr>
@@ -129,7 +129,7 @@
                     <td>{{ claim.claim_type.name }}</td>
                     <td>{{ claim.amount }}</td>
                     <td><span class="badge badge-{{ claim.settlement_status|lower }}">{{ claim.get_settlement_status_display }}</span></td>
-                    <td>{{ claim.settled_by.username|default:"—" }}</td>
+                    <td>{{ claim.date|date:"M j, Y" }}</td>
                     <td>{% if claim.settled_at %}{{ claim.settled_at|date:"F Y" }}{% else %}—{% endif %}</td>
                     <td style="white-space:nowrap;">
                         {% if claim.status == "APPROVED" %}
